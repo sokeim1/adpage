@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Реклама</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        .timer {
+            font-size: 48px;
+            font-weight: bold;
+            color: #ffd700;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .ad-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 Подождите немного</h1>
+            <p>Просмотр рекламы помогает нам поддерживать бота бесплатным</p>
+        </div>
+
+        <div class="timer" id="timer">10</div>
+
+        <div class="ad-container">
+            <iframe data-aa='2413469' src='//acceptable.a-ads.com/2413469/?size=Adaptive'
+                style='border:0; padding:0; width:70%; height:auto; overflow:hidden;display: block;margin: auto'></iframe>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Telegram Web App
+        let tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+        
+        console.log('=== TELEGRAM WEB APP V2 (MainButton) ===');
+        console.log('Version:', tg.version);
+        console.log('Platform:', tg.platform);
+        console.log('MainButton available:', !!tg.MainButton);
+        console.log('sendData available:', typeof tg.sendData);
+        
+        // Получаем параметры из URL (hash)
+        const hash = window.location.hash.substring(1);
+        const params = new URLSearchParams(hash);
+        const movieKey = params.get('movie') || 'unknown';
+        const contentType = params.get('type') || 'movie';
+        const userId = params.get('user_id') || '0';
+        
+        console.log('Parameters:', { movieKey, contentType, userId });
+        
+        // Таймер 10 секунд
+        let countdown = 10;
+        const timerElement = document.getElementById('timer');
+        
+        const timer = setInterval(() => {
+            countdown--;
+            timerElement.textContent = countdown;
+            
+            if (countdown <= 0) {
+                clearInterval(timer);
+                showMainButton();
+            }
+        }, 1000);
+        
+        // Показываем MainButton после просмотра рекламы
+        function showMainButton() {
+            console.log('⏰ Таймер закончился, показываем MainButton');
+            
+            // Подготавливаем данные
+            const data = {
+                action: 'watched_ad',
+                content_key: movieKey,
+                content_type: contentType,
+                user_id: userId,
+                timestamp: Date.now()
+            };
+            
+            console.log('Данные для отправки:', data);
+            
+            // Показываем MainButton
+            tg.MainButton.setText('▶️ Смотреть фильм');
+            tg.MainButton.show();
+            tg.MainButton.enable();
+            
+            // Обработчик нажатия
+            tg.MainButton.onClick(function() {
+                console.log('🔥 MainButton нажата!');
+                console.log('Отправляем данные:', JSON.stringify(data));
+                
+                try {
+                    // Пробуем sendData
+                    if (typeof tg.sendData === 'function') {
+                        console.log('Используем sendData()');
+                        tg.sendData(JSON.stringify(data));
+                    } else {
+                        console.error('❌ sendData не доступен!');
+                        alert('Ошибка: sendData не поддерживается в вашей версии Telegram');
+                    }
+                    
+                    // Закрываем WebApp
+                    setTimeout(() => {
+                        console.log('Закрываем WebApp...');
+                        tg.close();
+                    }, 500);
+                    
+                } catch (error) {
+                    console.error('❌ Ошибка:', error);
+                    alert('Ошибка: ' + error.message);
+                }
+            });
+        }
+        
+        // Кнопка "Назад"
+        if (tg.BackButton) {
+            tg.BackButton.show();
+            tg.BackButton.onClick(() => {
+                tg.close();
+            });
+        }
+    </script>
+</body>
+</html>
