@@ -129,17 +129,28 @@
             tg.MainButton.onClick(function() {
                 console.log('🔥 MainButton нажата!');
                 
-                // Формируем deep link для отправки данных боту
-                const deepLink = `https://t.me/rezkafilms_bot?start=watched_${contentType}_${movieKey}`;
-                console.log('Открываем:', deepLink);
+                // Подготавливаем данные
+                const data = {
+                    action: 'watched_ad',
+                    content_key: movieKey,
+                    content_type: contentType,
+                    timestamp: Date.now()
+                };
                 
-                // Открываем бота с параметром
-                tg.openTelegramLink(deepLink);
+                console.log('Отправляем данные:', data);
                 
-                // Закрываем WebApp
-                setTimeout(() => {
+                // Пробуем sendData
+                if (typeof tg.sendData === 'function') {
+                    console.log('Используем sendData()');
+                    tg.sendData(JSON.stringify(data));
                     tg.close();
-                }, 300);
+                } else {
+                    // Fallback: используем deep link
+                    console.log('sendData не доступен, используем deep link');
+                    const deepLink = `https://t.me/rezkafilms_bot?start=watched_${contentType}_${movieKey}`;
+                    window.open(deepLink, '_blank');
+                    setTimeout(() => tg.close(), 500);
+                }
             });
         }
         
