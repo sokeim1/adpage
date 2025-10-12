@@ -215,10 +215,43 @@
         // Применяем тему Telegram
         document.body.style.backgroundColor = tg.themeParams.bg_color || '#667eea';
 
-        // Получаем параметры из URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const movieKey = urlParams.get('movie') || urlParams.get('content') || 'unknown';
-        const contentType = urlParams.get('type') || 'movie'; // movie или series
+        // Получаем параметры из URL - несколько способов для надежности
+        console.log('=== ПОЛУЧЕНИЕ ПАРАМЕТРОВ ===');
+        console.log('window.location.href:', window.location.href);
+        console.log('window.location.search:', window.location.search);
+        console.log('window.location.hash:', window.location.hash);
+        
+        // Пробуем разные способы получения параметров
+        let urlParams = new URLSearchParams(window.location.search);
+        
+        // Если параметров нет в search, пробуем из hash (некоторые WebApp так работают)
+        if (!window.location.search && window.location.hash) {
+            const hashParams = window.location.hash.substring(1);
+            urlParams = new URLSearchParams(hashParams);
+            console.log('Параметры из hash:', hashParams);
+        }
+        
+        // Пробуем получить из tg.initDataUnsafe (может быть там)
+        let movieKey = urlParams.get('movie') || urlParams.get('content');
+        let contentType = urlParams.get('type') || 'movie';
+        
+        console.log('Параметры из URL:');
+        console.log('- movie:', movieKey);
+        console.log('- type:', contentType);
+        
+        // Если параметров нет, пробуем из startParam
+        if (!movieKey && tg.initDataUnsafe?.start_param) {
+            console.log('Пробуем получить из start_param:', tg.initDataUnsafe.start_param);
+            movieKey = tg.initDataUnsafe.start_param;
+        }
+        
+        // Финальные значения
+        movieKey = movieKey || 'unknown';
+        contentType = contentType || 'movie';
+        
+        console.log('Финальные значения:');
+        console.log('- movieKey:', movieKey);
+        console.log('- contentType:', contentType);
         
         // Универсальная функция для уведомлений (совместимо с версией 6.0)
         function safeNotify(message, type = 'info') {
