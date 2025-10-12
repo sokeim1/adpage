@@ -120,17 +120,6 @@
         function showMainButton() {
             console.log('⏰ Таймер закончился, показываем MainButton');
             
-            // Подготавливаем данные
-            const data = {
-                action: 'watched_ad',
-                content_key: movieKey,
-                content_type: contentType,
-                user_id: userId,
-                timestamp: Date.now()
-            };
-            
-            console.log('Данные для отправки:', data);
-            
             // Показываем MainButton
             tg.MainButton.setText('▶️ Смотреть фильм');
             tg.MainButton.show();
@@ -139,28 +128,18 @@
             // Обработчик нажатия
             tg.MainButton.onClick(function() {
                 console.log('🔥 MainButton нажата!');
-                console.log('Отправляем данные:', JSON.stringify(data));
                 
-                try {
-                    // Пробуем sendData
-                    if (typeof tg.sendData === 'function') {
-                        console.log('Используем sendData()');
-                        tg.sendData(JSON.stringify(data));
-                    } else {
-                        console.error('❌ sendData не доступен!');
-                        alert('Ошибка: sendData не поддерживается в вашей версии Telegram');
-                    }
-                    
-                    // Закрываем WebApp
-                    setTimeout(() => {
-                        console.log('Закрываем WebApp...');
-                        tg.close();
-                    }, 500);
-                    
-                } catch (error) {
-                    console.error('❌ Ошибка:', error);
-                    alert('Ошибка: ' + error.message);
-                }
+                // Формируем deep link для отправки данных боту
+                const deepLink = `https://t.me/rezkafilms_bot?start=watched_${contentType}_${movieKey}`;
+                console.log('Открываем:', deepLink);
+                
+                // Открываем бота с параметром
+                tg.openTelegramLink(deepLink);
+                
+                // Закрываем WebApp
+                setTimeout(() => {
+                    tg.close();
+                }, 300);
             });
         }
         
