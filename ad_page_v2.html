@@ -128,28 +128,28 @@
             // Обработчик нажатия
             tg.MainButton.onClick(function() {
                 console.log('🔥 MainButton нажата!');
+                console.log('Параметры:', {movieKey, contentType, userId});
                 
-                // Подготавливаем данные
-                const data = {
+                // Формируем данные для отправки боту
+                const dataToSend = {
                     action: 'watched_ad',
                     content_key: movieKey,
                     content_type: contentType,
+                    user_id: userId,
                     timestamp: Date.now()
                 };
                 
-                console.log('Отправляем данные:', data);
+                console.log('=== ОТПРАВКА ДАННЫХ БОТУ ===');
+                console.log('Данные для отправки:', dataToSend);
+                console.log('JSON строка:', JSON.stringify(dataToSend));
                 
-                // Пробуем sendData
-                if (typeof tg.sendData === 'function') {
-                    console.log('Используем sendData()');
-                    tg.sendData(JSON.stringify(data));
-                    tg.close();
-                } else {
-                    // Fallback: используем deep link
-                    console.log('sendData не доступен, используем deep link');
-                    const deepLink = `https://t.me/rezkafilms_bot?start=watched_${contentType}_${movieKey}`;
-                    window.open(deepLink, '_blank');
-                    setTimeout(() => tg.close(), 500);
+                try {
+                    // Используем sendData для отправки JSON данных боту
+                    tg.sendData(JSON.stringify(dataToSend));
+                    console.log('✅ sendData вызван успешно');
+                } catch (error) {
+                    console.error('❌ Ошибка sendData:', error);
+                    alert('Ошибка отправки данных: ' + error.message);
                 }
             });
         }
