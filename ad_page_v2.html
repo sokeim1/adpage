@@ -64,6 +64,30 @@
             align-items: center;
             justify-content: center;
         }
+
+        .continue-btn {
+            display: none;
+            width: 100%;
+            padding: 16px 24px;
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 20px;
+        }
+
+        .continue-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        .continue-btn:active {
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
@@ -79,6 +103,10 @@
             <iframe data-aa='2413469' src='//acceptable.a-ads.com/2413469/?size=Adaptive'
                 style='border:0; padding:0; width:70%; height:auto; overflow:hidden;display: block;margin: auto'></iframe>
         </div>
+
+        <button class="continue-btn" id="continueBtn" onclick="sendDataToBot()">
+            ▶️ Смотреть фильм
+        </button>
     </div>
 
     <script>
@@ -116,42 +144,52 @@
             }
         }, 1000);
         
-        // Показываем MainButton после просмотра рекламы
+        // Функция отправки данных боту
+        function sendDataToBot() {
+            console.log('🔥 Кнопка нажата!');
+            console.log('Параметры:', {movieKey, contentType, userId});
+            
+            // Формируем данные для отправки боту
+            const dataToSend = {
+                action: 'watched_ad',
+                content_key: movieKey,
+                content_type: contentType,
+                user_id: userId,
+                timestamp: Date.now()
+            };
+            
+            console.log('=== ОТПРАВКА ДАННЫХ БОТУ ===');
+            console.log('Данные для отправки:', dataToSend);
+            console.log('JSON строка:', JSON.stringify(dataToSend));
+            
+            try {
+                // Используем sendData для отправки JSON данных боту
+                tg.sendData(JSON.stringify(dataToSend));
+                console.log('✅ sendData вызван успешно');
+            } catch (error) {
+                console.error('❌ Ошибка sendData:', error);
+                alert('Ошибка отправки данных: ' + error.message);
+            }
+        }
+
+        // Показываем кнопку после просмотра рекламы
         function showMainButton() {
-            console.log('⏰ Таймер закончился, показываем MainButton');
+            console.log('⏰ Таймер закончился, показываем кнопки');
             
-            // Показываем MainButton
-            tg.MainButton.setText('▶️ Смотреть фильм');
-            tg.MainButton.show();
-            tg.MainButton.enable();
+            // Пробуем использовать MainButton (если доступен)
+            if (tg.MainButton) {
+                console.log('✅ MainButton доступен, используем его');
+                tg.MainButton.setText('▶️ Смотреть фильм');
+                tg.MainButton.show();
+                tg.MainButton.enable();
+                tg.MainButton.onClick(sendDataToBot);
+            } else {
+                console.log('⚠️ MainButton недоступен, используем HTML кнопку');
+            }
             
-            // Обработчик нажатия
-            tg.MainButton.onClick(function() {
-                console.log('🔥 MainButton нажата!');
-                console.log('Параметры:', {movieKey, contentType, userId});
-                
-                // Формируем данные для отправки боту
-                const dataToSend = {
-                    action: 'watched_ad',
-                    content_key: movieKey,
-                    content_type: contentType,
-                    user_id: userId,
-                    timestamp: Date.now()
-                };
-                
-                console.log('=== ОТПРАВКА ДАННЫХ БОТУ ===');
-                console.log('Данные для отправки:', dataToSend);
-                console.log('JSON строка:', JSON.stringify(dataToSend));
-                
-                try {
-                    // Используем sendData для отправки JSON данных боту
-                    tg.sendData(JSON.stringify(dataToSend));
-                    console.log('✅ sendData вызван успешно');
-                } catch (error) {
-                    console.error('❌ Ошибка sendData:', error);
-                    alert('Ошибка отправки данных: ' + error.message);
-                }
-            });
+            // В любом случае показываем HTML кнопку как fallback
+            const btn = document.getElementById('continueBtn');
+            btn.style.display = 'block';
         }
         
         // Кнопка "Назад"
