@@ -208,12 +208,27 @@
     </div>
 
     <script>
+        // Глобальный обработчик ошибок для отладки
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            console.error('КРИТИЧЕСКАЯ ОШИБКА:', msg, 'в', url, 'строка:', lineNo);
+            alert('ОШИБКА: ' + msg + ' (строка ' + lineNo + ')');
+            return false;
+        };
+        
         // Инициализация Telegram Web App
         let tg = window.Telegram.WebApp;
+        
+        // Ждем готовности Web App
+        tg.ready();
         tg.expand(); // Развернуть на весь экран
         
         // Применяем тему Telegram
         document.body.style.backgroundColor = tg.themeParams.bg_color || '#667eea';
+        
+        console.log('=== ИНИЦИАЛИЗАЦИЯ WEB APP ===');
+        console.log('WebApp готов:', tg.isReady);
+        console.log('WebApp версия:', tg.version);
+        console.log('sendData доступен:', typeof tg.sendData);
 
         // Получаем параметры из URL - несколько способов для надежности
         console.log('=== ПОЛУЧЕНИЕ ПАРАМЕТРОВ ===');
@@ -328,9 +343,19 @@
             console.log('JSON строка:', JSON.stringify(data));
             console.log('Telegram WebApp доступен:', !!tg);
             console.log('sendData функция доступна:', typeof tg.sendData);
+            console.log('WebApp готов:', tg.isReady);
+            console.log('WebApp версия:', tg.version);
+            
+            // Дополнительная проверка готовности
+            if (!tg.sendData) {
+                console.error('❌ КРИТИЧЕСКАЯ ОШИБКА: sendData не доступен!');
+                alert('Ошибка: Web App не готов. Попробуйте перезапустить.');
+                return;
+            }
             
             try {
                 // Отправляем данные боту
+                console.log('Вызываем tg.sendData...');
                 tg.sendData(JSON.stringify(data));
                 console.log('✅ Данные успешно отправлены боту');
                 
@@ -344,7 +369,11 @@
                 }, 1000);
             } catch (error) {
                 console.error('❌ Ошибка при отправке данных:', error);
+                console.error('Стек ошибки:', error.stack);
                 safeNotify('❌ Ошибка при отправке данных. Попробуйте еще раз.', 'error');
+                
+                // Показываем детальную ошибку
+                alert('Ошибка отправки: ' + error.message);
             }
         }
 
