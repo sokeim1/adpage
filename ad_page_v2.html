@@ -88,6 +88,18 @@
         .continue-btn:active {
             transform: translateY(0);
         }
+
+        .continue-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status-message {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #ffd700;
+        }
     </style>
 </head>
 <body>
@@ -107,6 +119,8 @@
         <button class="continue-btn" id="continueBtn" onclick="sendDataToBot()">
             ▶️ Смотреть фильм
         </button>
+        
+        <div class="status-message" id="statusMessage"></div>
     </div>
 
     <script>
@@ -115,13 +129,13 @@
         tg.ready();
         tg.expand();
         
-        console.log('=== TELEGRAM WEB APP V2 (MainButton) ===');
+        console.log('=== TELEGRAM WEB APP INIT ===');
         console.log('Version:', tg.version);
         console.log('Platform:', tg.platform);
-        console.log('MainButton available:', !!tg.MainButton);
-        console.log('sendData available:', typeof tg.sendData);
+        console.log('InitData:', tg.initData);
+        console.log('InitDataUnsafe:', tg.initDataUnsafe);
         
-        // Получаем параметры из URL (hash)
+        // Получаем параметры из URL
         const hash = window.location.hash.substring(1);
         const params = new URLSearchParams(hash);
         const movieKey = params.get('movie') || 'unknown';
@@ -140,65 +154,126 @@
             
             if (countdown <= 0) {
                 clearInterval(timer);
-                showMainButton();
+                timerElement.textContent = '✓';
+                showContinueButton();
             }
         }, 1000);
         
         // Функция отправки данных боту
         function sendDataToBot() {
-            console.log('🔥 Кнопка нажата!');
-            console.log('Параметры:', {movieKey, contentType, userId});
+            console.log('🔥 Отправка данных боту...');
             
-            // Формируем данные для отправки боту
-            const dataToSend = {
-                action: 'watched_ad',
-                content_key: movieKey,
-                content_type: contentType,
+            const btn = document.getElementById('continueBtn');
+            const statusMsg = document.getElementById('statusMessage');
+            
+            // Блокируем кнопку
+            btn.disabled = true;
+            btn.textContent = '⏳ Отправка...';
+            
+            // Формируем данные для отправки
+            const dataToSend = JSON.stringify({
+                action: 'ad_watched',
+                movie: movieKey,
+                type: contentType,
                 user_id: userId,
                 timestamp: Date.now()
-            };
+            });
             
-            console.log('=== ОТПРАВКА ДАННЫХ БОТУ ===');
-            console.log('Данные для отправки:', dataToSend);
-            console.log('JSON строка:', JSON.stringify(dataToSend));
+            console.log('Отправляемые данные:', dataToSend);
             
             try {
-                // Используем sendData для отправки JSON данных боту
-                tg.sendData(JSON.stringify(dataToSend));
-                console.log('✅ sendData вызван успешно');
+                // ВАРИАНТ 1: Используем sendData для отправки данных боту
+                if (tg.sendData) {
+                    tg.sendData(dataToSend);
+                    console.log('✅ Данные отправлены через sendData');
+                    statusMsg.textContent = 'Данные отправлены! Закрываем...';
+                    
+                    // Закрываем WebApp после отправки
+                    setTimeout(() => {
+                        tg.close();
+                    }, 1000);
+                } else {
+                    console.error('❌ sendData недоступен');
+                    
+                    // ВАРИАНТ 2: Fallback - используем web_app_data через inline кнопку
+                    // Для этого нужно будет на стороне бота обработать callback_query с web_app_data
+                    statusMsg.textContent = 'Используем альтернативный метод...';
+                    
+                    // Закрываем WebApp и возвращаем данные
+                    tg.close();
+                }
             } catch (error) {
-                console.error('❌ Ошибка sendData:', error);
-                alert('Ошибка отправки данных: ' + error.message);
+                console.error('❌ Ошибка отправки:', error);
+                statusMsg.textContent = 'Ошибка: ' + error.message;
+                btn.disabled = false;
+                btn.textContent = '▶️ Повторить';
             }
         }
 
-        // Показываем кнопку после просмотра рекламы
-        function showMainButton() {
-            console.log('⏰ Таймер закончился, показываем кнопки');
-            
-            // Пробуем использовать MainButton (если доступен)
+        // Альтернативный способ через MainButton
+        function setupMainButton() {
             if (tg.MainButton) {
-                console.log('✅ MainButton доступен, используем его');
+                console.log('✅ Настройка MainButton');
                 tg.MainButton.setText('▶️ Смотреть фильм');
+                tg.MainButton.color = '#667eea';
+                tg.MainButton.textColor = '#ffffff';
+                
+                tg.MainButton.onClick(() => {
+                    console.log('MainButton clicked');
+                    
+                    const dataToSend = JSON.stringify({
+                        action: 'ad_watched',
+                        movie: movieKey,
+                        type: contentType,
+                        user_id: userId,
+                        timestamp: Date.now()
+                    });
+                    
+                    // Отправляем данные и закрываем
+                    if (tg.sendData) {
+                        tg.sendData(dataToSend);
+                    }
+                    
+                    setTimeout(() => {
+                        tg.close();
+                    }, 500);
+                });
+                
                 tg.MainButton.show();
-                tg.MainButton.enable();
-                tg.MainButton.onClick(sendDataToBot);
-            } else {
-                console.log('⚠️ MainButton недоступен, используем HTML кнопку');
             }
+        }
+
+        // Показываем кнопку после таймера
+        function showContinueButton() {
+            console.log('⏰ Таймер закончился');
             
-            // В любом случае показываем HTML кнопку как fallback
+            // Показываем HTML кнопку
             const btn = document.getElementById('continueBtn');
             btn.style.display = 'block';
+            
+            // Также настраиваем MainButton если доступен
+            setupMainButton();
         }
         
-        // Кнопка "Назад"
+        // Настройка кнопки "Назад"
         if (tg.BackButton) {
             tg.BackButton.show();
             tg.BackButton.onClick(() => {
+                console.log('Back button clicked');
                 tg.close();
             });
         }
+        
+        // Обработка событий WebApp
+        tg.onEvent('viewportChanged', function() {
+            console.log('Viewport changed:', tg.viewportHeight);
+        });
+        
+        // Проверяем поддержку методов
+        console.log('=== МЕТОДЫ WEBAPP ===');
+        console.log('sendData доступен:', typeof tg.sendData === 'function');
+        console.log('close доступен:', typeof tg.close === 'function');
+        console.log('MainButton доступен:', !!tg.MainButton);
     </script>
 </body>
 </html>
