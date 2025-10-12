@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Просмотр фильма</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: white;
+            overflow: hidden;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid #fff;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .player-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            display: none;
+        }
+
+        .player-container.loaded {
+            display: block;
+        }
+
+        iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .error {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+            color: #ff6b6b;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .error-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .error-message {
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+
+        .retry-btn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .retry-btn:active {
+            transform: scale(0.95);
+        }
+
+        .movie-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            z-index: 5;
+            display: none;
+        }
+
+        .movie-info.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .movie-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .movie-meta {
+            font-size: 14px;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Загрузка плеера...</p>
+    </div>
+
+    <div class="movie-info" id="movieInfo">
+        <div class="movie-title" id="movieTitle">Фильм</div>
+        <div class="movie-meta" id="movieMeta">Загрузка...</div>
+    </div>
+
+    <div class="player-container" id="playerContainer">
+        <iframe 
+            id="kodikPlayer" 
+            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" 
+            allowfullscreen>
+        </iframe>
+    </div>
+
+    <div class="error" id="error">
+        <div class="error-icon">❌</div>
+        <div class="error-message" id="errorMessage">Не удалось загрузить плеер</div>
+        <button class="retry-btn" onclick="location.reload()">Повторить</button>
+    </div>
+
+    <script>
+        // Инициализация Telegram Web App
+        let tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        console.log('=== KODIK PLAYER INIT ===');
+        console.log('Version:', tg.version);
+        console.log('Platform:', tg.platform);
+
+        // Получаем параметры из URL (hash)
+        const hash = window.location.hash.substring(1);
+        const params = new URLSearchParams(hash);
+        
+        const kodikLink = params.get('link');
+        const movieTitle = params.get('title') || 'Фильм';
+        const movieYear = params.get('year') || '';
+        const movieRating = params.get('rating') || '';
+
+        console.log('Parameters:', { kodikLink, movieTitle, movieYear, movieRating });
+
+        // Показываем информацию о фильме
+        if (movieTitle) {
+            document.getElementById('movieTitle').textContent = decodeURIComponent(movieTitle);
+            
+            let metaParts = [];
+            if (movieYear) metaParts.push(movieYear);
+            if (movieRating) metaParts.push(`⭐ ${movieRating}`);
+            
+            if (metaParts.length > 0) {
+                document.getElementById('movieMeta').textContent = metaParts.join(' • ');
+            }
+            
+            // Показываем информацию на 3 секунды
+            const movieInfo = document.getElementById('movieInfo');
+            movieInfo.classList.add('show');
+            setTimeout(() => {
+                movieInfo.classList.remove('show');
+            }, 3000);
+        }
+
+        // Загружаем плеер
+        if (kodikLink) {
+            const iframe = document.getElementById('kodikPlayer');
+            const loading = document.getElementById('loading');
+            const playerContainer = document.getElementById('playerContainer');
+            const errorDiv = document.getElementById('error');
+
+            // Исправляем ссылку если нужно
+            let playerLink = kodikLink;
+            if (playerLink.startsWith('//')) {
+                playerLink = 'https:' + playerLink;
+            } else if (!playerLink.startsWith('http')) {
+                playerLink = 'https://' + playerLink;
+            }
+
+            console.log('Loading player:', playerLink);
+
+            // Устанавливаем ссылку на iframe
+            iframe.src = playerLink;
+
+            // Обработчик загрузки iframe
+            iframe.onload = function() {
+                console.log('✅ Player loaded successfully');
+                loading.style.display = 'none';
+                playerContainer.classList.add('loaded');
+            };
+
+            // Обработчик ошибки
+            iframe.onerror = function(error) {
+                console.error('❌ Player loading error:', error);
+                loading.style.display = 'none';
+                errorDiv.classList.add('show');
+                document.getElementById('errorMessage').textContent = 
+                    'Не удалось загрузить плеер. Попробуйте позже.';
+            };
+
+            // Таймаут на случай если плеер не загрузится
+            setTimeout(() => {
+                if (!playerContainer.classList.contains('loaded')) {
+                    console.warn('⚠️ Player loading timeout');
+                    // Все равно показываем плеер, возможно он загружается
+                    loading.style.display = 'none';
+                    playerContainer.classList.add('loaded');
+                }
+            }, 5000);
+        } else {
+            console.error('❌ No kodik link provided');
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').classList.add('show');
+            document.getElementById('errorMessage').textContent = 
+                'Ссылка на видео не найдена';
+        }
+
+        // Настройка кнопки "Назад"
+        if (tg.BackButton) {
+            tg.BackButton.show();
+            tg.BackButton.onClick(() => {
+                console.log('Back button clicked');
+                tg.close();
+            });
+        }
+
+        // Предотвращаем закрытие при свайпе вниз
+        tg.enableClosingConfirmation();
+
+        console.log('=== KODIK PLAYER READY ===');
+    </script>
+</body>
+</html>
