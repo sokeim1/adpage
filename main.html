@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>KINO HD - Каталог фильмов и сериалов</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="version" content="1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            animation: sparkle 2s linear infinite;
+        }
+
+        .sparkle:nth-child(1) { top: 10%; left: 10%; animation-delay: 0s; }
+        .sparkle:nth-child(2) { top: 90%; left: 90%; animation-delay: 0.5s; }
+        .sparkle:nth-child(3) { top: 20%; left: 80%; animation-delay: 1s; }
+        .sparkle:nth-child(4) { top: 80%; left: 20%; animation-delay: 1.5s; }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 3s ease-in-out infinite;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(255,255,255,0.5);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+
+        .search-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+
+        .search-box {
+            background: linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 25px;
+            padding: 15px 25px;
+            color: white;
+            font-size: 1rem;
+            width: 100%;
+            max-width: 400px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-box::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+
+        .search-box:focus {
+            border-color: rgba(255,255,255,0.4);
+            box-shadow: 0 0 20px rgba(255,255,255,0.2);
+        }
+
+        .movies-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .movie-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .movie-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: rotate 6s linear infinite;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .movie-card:hover::before {
+            opacity: 1;
+        }
+
+        .movie-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            border-color: rgba(255,255,255,0.3);
+        }
+
+        .movie-poster {
+            width: 100%;
+            height: 200px;
+            border-radius: 15px;
+            object-fit: cover;
+            margin-bottom: 15px;
+            transition: transform 0.3s ease;
+        }
+
+        .movie-card:hover .movie-poster {
+            transform: scale(1.05);
+        }
+
+        .poster-placeholder {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 15px;
+        }
+
+        .movie-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+
+        .movie-meta {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+        }
+
+        .meta-item {
+            background: rgba(255,255,255,0.1);
+            padding: 4px 8px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .rating {
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .year {
+            color: #4ecdc4;
+        }
+
+        .quality {
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+
+        .genre-list {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .genre-tag {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            color: #fff;
+        }
+
+        .movie-description {
+            font-size: 0.85rem;
+            line-height: 1.4;
+            color: rgba(255,255,255,0.8);
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            border: 1px solid rgba(255,255,255,0.2);
+            position: relative;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-close:hover {
+            opacity: 1;
+        }
+
+        .modal-poster {
+            width: 150px;
+            height: 225px;
+            border-radius: 15px;
+            object-fit: cover;
+            float: left;
+            margin-right: 20px;
+            margin-bottom: 15px;
+        }
+
+        .modal-poster-placeholder {
+            width: 150px;
+            height: 225px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: rgba(255,255,255,0.7);
+            float: left;
+            margin-right: 20px;
+            margin-bottom: 15px;
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+
+        .modal-meta {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .modal-description {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: rgba(255,255,255,0.9);
+            clear: both;
+            margin-top: 20px;
+        }
+
+        .bot-button {
+            display: inline-block;
+            background: linear-gradient(45deg, #0088cc, #00a0e6);
+            color: white;
+            text-decoration: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .bot-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 136, 204, 0.3);
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .title {
+                font-size: 2rem;
+            }
+
+            .movies-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 20px;
+            }
+
+            .modal-content {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            .modal-poster, .modal-poster-placeholder {
+                width: 100px;
+                height: 150px;
+                margin-right: 15px;
+            }
+
+            .modal-title {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
+
+    <div class="container">
+        <div class="header">
+            <h1 class="title">KINO HD</h1>
+            <p class="subtitle">Каталог лучших фильмов и сериалов</p>
+        </div>
+
+        <div class="search-container">
+            <input type="text" class="search-box" placeholder="🔍 Поиск фильмов и сериалов..." id="searchInput">
+        </div>
+
+        <div class="movies-grid" id="moviesGrid">
+            <!-- Фильмы будут добавлены через JavaScript -->
+        </div>
+
+        <div style="text-align: center; margin-top: 40px;">
+            <a href="https://t.me/kinofilmFHDbot" class="bot-button">
+                🤖 Открыть в Telegram боте
+            </a>
+        </div>
+    </div>
+
+    <!-- Модальное окно -->
+    <div class="modal" id="movieModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <div id="modalContent">
+                <!-- Контент модального окна -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Примеры фильмов (в реальности можно загружать с API)
+        const movies = [
+            {
+                id: 1,
+                title: "Дюна",
+                year: 2021,
+                rating: 8.1,
+                quality: "4K",
+                genres: ["фантастика", "драма", "приключения"],
+                poster: "https://images.weserv.nl/?url=https://avatars.mds.yandex.net/get-kinopoisk-image/1946459/bf93b465-1189-4155-9dd1-cb9fb5cb1bb5/600x900",
+                description: "В далёком будущем герцог Лето Атрейдес принимает управление пустынной планетой Арракис, также известной как Дюна, единственным источником самого ценного вещества во вселенной — «пряности». Когда предательство разрушает его семью, сын герцога Пол должен бежать в пустыню и присоединиться к таинственному племени фременов.",
+                country: "США, Канада"
+            },
+            {
+                id: 2,
+                title: "Человек-паук: Нет пути домой",
+                year: 2021,
+                rating: 8.4,
+                quality: "4K",
+                genres: ["фантастика", "боевик", "приключения"],
+                poster: "https://images.weserv.nl/?url=https://avatars.mds.yandex.net/get-kinopoisk-image/4303601/9b5c1b05-95cf-4f8b-9b91-1c9a0b9b3b3b/600x900",
+                description: "Впервые в истории кинематографа Человек-паук раскрывает свою личность и больше не может отделить обычную жизнь от высоких ставок супергероя. Когда Питер обращается за помощью к Доктору Стрэнджу, ставки становятся ещё более опасными, заставляя его узнать, что значит быть Человеком-пауком.",
+                country: "США"
+            },
+            {
+                id: 3,
+                title: "Матрица: Воскрешения",
+                year: 2021,
+                rating: 5.7,
+                quality: "4K",
+                genres: ["фантастика", "боевик"],
+                poster: "https://images.weserv.nl/?url=https://avatars.mds.yandex.net/get-kinopoisk-image/4774061/2c9c1b05-95cf-4f8b-9b91-1c9a0b9b3b3b/600x900",
+                description: "Нео живёт обычной жизнью в Сан-Франциско. Его терапевт прописывает ему синие таблетки. До тех пор, пока Морфеус, которого давно разыскивают, не предлагает ему красную таблетку и не открывает его разум для мира Матрицы.",
+                country: "США"
+            },
+            {
+                id: 4,
+                title: "Дом Гуччи",
+                year: 2021,
+                rating: 6.8,
+                quality: "FullHD",
+                genres: ["драма", "криминал", "биография"],
+                poster: null,
+                description: "Фильм вдохновлён шокирующей историей семьи, стоящей за итальянским домом моды Gucci. Охватывающий три десятилетия любви, предательства, упадка, мести и, в конечном счёте, убийства, фильм показывает, что имя значит всё.",
+                country: "США, Великобритания"
+            },
+            {
+                id: 5,
+                title: "Бэтмен",
+                year: 2022,
+                rating: 7.8,
+                quality: "4K",
+                genres: ["боевик", "криминал", "драма"],
+                poster: "https://images.weserv.nl/?url=https://avatars.mds.yandex.net/get-kinopoisk-image/4774061/3c9c1b05-95cf-4f8b-9b91-1c9a0b9b3b3b/600x900",
+                description: "Когда убийца-садист начинает убивать ключевых политических фигур в Готэме, Бэтмен вынужден исследовать скрытую коррупцию города и ставить под сомнение причастность своей семьи.",
+                country: "США"
+            },
+            {
+                id: 6,
+                title: "Топ Ган: Мэверик",
+                year: 2022,
+                rating: 8.3,
+                quality: "4K",
+                genres: ["боевик", "драма"],
+                poster: null,
+                description: "После более чем тридцати лет службы в качестве одного из лучших лётчиков ВМС, Пит «Мэверик» Митчелл находится там, где он принадлежит, раздвигая границы как смелый лётчик-испытатель и уклоняясь от повышения в звании, которое заземлило бы его.",
+                country: "США"
+            }
+        ];
+
+        let filteredMovies = [...movies];
+
+        function renderMovies(moviesToRender = filteredMovies) {
+            const grid = document.getElementById('moviesGrid');
+            grid.innerHTML = '';
+
+            moviesToRender.forEach(movie => {
+                const movieCard = document.createElement('div');
+                movieCard.className = 'movie-card';
+                movieCard.onclick = () => openModal(movie);
+
+                const posterHtml = movie.poster 
+                    ? `<img src="${movie.poster}" alt="${movie.title}" class="movie-poster" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                       <div class="poster-placeholder" style="display: none;">🎬</div>`
+                    : `<div class="poster-placeholder">🎬</div>`;
+
+                const genresHtml = movie.genres.map(genre => 
+                    `<span class="genre-tag">${genre}</span>`
+                ).join('');
+
+                movieCard.innerHTML = `
+                    ${posterHtml}
+                    <div class="movie-title">${movie.title}</div>
+                    <div class="movie-meta">
+                        <div class="meta-item">
+                            <span class="rating">⭐ ${movie.rating}</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="year">📅 ${movie.year}</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="quality">🎬 ${movie.quality}</span>
+                        </div>
+                    </div>
+                    <div class="genre-list">
+                        ${genresHtml}
+                    </div>
+                    <div class="movie-description">
+                        ${movie.description}
+                    </div>
+                `;
+
+                grid.appendChild(movieCard);
+            });
+        }
+
+        function openModal(movie) {
+            const modal = document.getElementById('movieModal');
+            const modalContent = document.getElementById('modalContent');
+
+            const posterHtml = movie.poster 
+                ? `<img src="${movie.poster}" alt="${movie.title}" class="modal-poster" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                   <div class="modal-poster-placeholder" style="display: none;">🎬</div>`
+                : `<div class="modal-poster-placeholder">🎬</div>`;
+
+            const genresHtml = movie.genres.map(genre => 
+                `<span class="genre-tag">${genre}</span>`
+            ).join('');
+
+            modalContent.innerHTML = `
+                ${posterHtml}
+                <div class="modal-title">${movie.title}</div>
+                <div class="modal-meta">
+                    <div class="meta-item">
+                        <span class="rating">⭐ ${movie.rating}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="year">📅 ${movie.year}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="quality">🎬 ${movie.quality}</span>
+                    </div>
+                </div>
+                <div class="genre-list">
+                    ${genresHtml}
+                </div>
+                <div class="modal-description">
+                    <strong>Страна:</strong> ${movie.country}<br><br>
+                    ${movie.description}
+                </div>
+                <a href="https://t.me/kinofilmFHDbot" class="bot-button">
+                    🎬 Смотреть в боте
+                </a>
+            `;
+
+            modal.classList.add('show');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('movieModal');
+            modal.classList.remove('show');
+        }
+
+        // Поиск
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            filteredMovies = movies.filter(movie => 
+                movie.title.toLowerCase().includes(query) ||
+                movie.genres.some(genre => genre.toLowerCase().includes(query))
+            );
+            renderMovies(filteredMovies);
+        });
+
+        // Закрытие модального окна при клике вне его
+        document.getElementById('movieModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Закрытие модального окна при нажатии Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Инициализация
+        renderMovies();
+    </script>
+</body>
+</html>
