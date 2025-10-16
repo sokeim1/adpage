@@ -434,8 +434,48 @@
     </div>
 
     <script>
-        // Примеры фильмов с простыми постерами для демонстрации
-        const movies = [
+        // URL API для получения фильмов
+        // Автоматически определяем URL (localhost или хостинг)
+        const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:5000/api/movies'
+            : 'https://your-bot-domain.com/api/movies';  // Замените на ваш домен хостинга
+        
+        let movies = [];
+        
+        // Загружаем фильмы из API
+        async function loadMovies() {
+            console.log('Attempting to load movies from:', API_URL);
+            
+            try {
+                const response = await fetch(API_URL + '?limit=50');
+                console.log('API Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('API Response data:', data);
+                
+                if (data.success && data.movies && data.movies.length > 0) {
+                    movies = data.movies;
+                    filteredMovies = [...movies];
+                    console.log(`Loaded ${movies.length} movies from API`);
+                    renderMovies(filteredMovies);
+                } else {
+                    console.warn('API returned no movies, using demo data');
+                    loadDemoMovies();
+                }
+            } catch (error) {
+                console.error('Error loading movies from API:', error);
+                console.log('Falling back to demo movies');
+                loadDemoMovies();
+            }
+        }
+        
+        // Демо-данные на случай если API недоступен
+        function loadDemoMovies() {
+            movies = [
             {
                 id: 1,
                 title: "Дюна",
@@ -502,9 +542,12 @@
                 description: "После более чем тридцати лет службы Пит «Мэверик» Митчелл раздвигает границы как смелый лётчик-испытатель.",
                 country: "США"
             }
-        ];
+            ];
+            filteredMovies = [...movies];
+            renderMovies(filteredMovies);
+        }
 
-        let filteredMovies = [...movies];
+        let filteredMovies = [];
 
         function renderMovies(moviesToRender = filteredMovies) {
             const grid = document.getElementById('moviesGrid');
@@ -520,7 +563,7 @@
                        <div class="poster-placeholder" style="display: none;">🎬</div>`
                     : `<div class="poster-placeholder">🎬</div>`;
 
-                const genresHtml = movie.genres.map(genre => 
+                const genresHtml = (Array.isArray(movie.genres) ? movie.genres : []).slice(0, 3).map(genre => 
                     `<span class="genre-tag">${genre}</span>`
                 ).join('');
 
@@ -559,7 +602,7 @@
                    <div class="modal-poster-placeholder" style="display: none;">🎬</div>`
                 : `<div class="modal-poster-placeholder">🎬</div>`;
 
-            const genresHtml = movie.genres.map(genre => 
+            const genresHtml = (Array.isArray(movie.genres) ? movie.genres : []).slice(0, 5).map(genre => 
                 `<span class="genre-tag">${genre}</span>`
             ).join('');
 
@@ -581,7 +624,7 @@
                     ${genresHtml}
                 </div>
                 <div class="modal-description">
-                    <strong>Страна:</strong> ${movie.country}<br><br>
+                    <strong>Страна:</strong> ${Array.isArray(movie.country) ? movie.country.join(', ') : movie.country}<br><br>
                     ${movie.description}
                 </div>
                 <a href="https://t.me/kinofilmFHDbot" class="bot-button">
@@ -621,8 +664,8 @@
             }
         });
 
-        // Инициализация
-        renderMovies();
+        // Инициализация - загружаем фильмы из API
+        loadMovies();
     </script>
 </body>
 </html>
