@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>KINO HD - Каталог фильмов и сериалов</title>
+    <title>KINO HD - ПЛЕЕР</title>
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="version" content="1.0">
+    <meta name="version" content="2.1">
     <style>
         * {
             margin: 0;
@@ -24,16 +24,158 @@
         }
 
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
+            display: flex;
+            gap: 10px;
+            flex-direction: column;
+            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 15px;
             position: relative;
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
+        .main-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            padding: 20px;
+            box-shadow: 
+                0 20px 35px rgba(0,0,0,0.1),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
             position: relative;
+            overflow: hidden;
+            max-width: 450px;
+            width: 100%;
+            margin: 5px;
+        }
+
+        .main-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: rotate 4s linear infinite;
+            z-index: -1;
+        }
+
+        .diamond-bg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(45deg);
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+            border-radius: 30px;
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        .title {
+            font-size: 2rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 3s ease-in-out infinite;
+            margin-bottom: 15px;
+            text-shadow: 0 0 20px rgba(255,255,255,0.5);
+        }
+
+        .loader {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 4px solid rgba(255,255,255,0.2);
+            border-top: 4px solid #4ecdc4;
+            border-right: 4px solid #ff6b6b;
+            animation: spin 0.8s linear infinite;
+            margin: 10px auto;
+            box-shadow: 0 0 15px rgba(78, 205, 196, 0.3);
+        }
+
+        .frame {
+            width: 100%;
+            max-width: 100%;
+            aspect-ratio: 16/9;
+            border: 0;
+            border-radius: 15px;
+            box-shadow: 
+                0 15px 30px rgba(0,0,0,0.2),
+                0 0 0 1px rgba(255,255,255,0.1);
+            background: #000;
+            margin: 10px 0;
+            min-height: 180px;
+            max-height: 300px;
+        }
+
+        .note {
+            opacity: 0.8;
+            font-size: 16px;
+            margin: 20px 0;
+            color: rgba(255,255,255,0.9);
+        }
+
+        .buttons-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            text-decoration: none;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            min-width: 150px;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-telegram {
+            background: linear-gradient(45deg, #0088cc, #00a0e6);
+            box-shadow: 0 8px 20px rgba(0, 136, 204, 0.3);
+        }
+
+        .btn-channel {
+            background: linear-gradient(45deg, #8e44ad, #9b59b6);
+            box-shadow: 0 8px 20px rgba(142, 68, 173, 0.3);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.2);
         }
 
         .sparkle {
@@ -50,145 +192,67 @@
         .sparkle:nth-child(3) { top: 20%; left: 80%; animation-delay: 1s; }
         .sparkle:nth-child(4) { top: 80%; left: 20%; animation-delay: 1.5s; }
 
-        .title {
-            font-size: 2.5rem;
-            font-weight: bold;
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
-            background-size: 300% 300%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: gradientShift 3s ease-in-out infinite;
-            margin-bottom: 10px;
-            text-shadow: 0 0 20px rgba(255,255,255,0.5);
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        .subtitle {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            margin-bottom: 30px;
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
-        .search-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 40px;
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
         }
 
-        .search-box {
-            background: linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 25px;
-            padding: 15px 25px;
-            color: white;
-            font-size: 1rem;
-            width: 100%;
-            max-width: 400px;
-            outline: none;
-            transition: all 0.3s ease;
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1); }
         }
 
-        .search-box::placeholder {
-            color: rgba(255,255,255,0.7);
-        }
-
-        .search-box:focus {
-            border-color: rgba(255,255,255,0.4);
-            box-shadow: 0 0 20px rgba(255,255,255,0.2);
-        }
-
-        .movies-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
-            margin-bottom: 40px;
-        }
-
-        .movie-card {
-            background: linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
-            backdrop-filter: blur(15px);
-            border-radius: 20px;
-            padding: 20px;
+        .movie-info {
+            margin: 15px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+            border-radius: 15px;
             border: 1px solid rgba(255,255,255,0.1);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
+            display: none;
         }
 
-        .movie-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: conic-gradient(from 0deg, transparent, rgba(255,255,255,0.1), transparent);
-            animation: rotate 6s linear infinite;
-            z-index: -1;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+        .movie-info.visible {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
         }
 
-        .movie-card:hover::before {
-            opacity: 1;
-        }
-
-        .movie-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-            border-color: rgba(255,255,255,0.3);
-        }
-
-        .movie-poster {
-            width: 100%;
-            height: 200px;
-            border-radius: 15px;
-            object-fit: cover;
-            margin-bottom: 15px;
-            transition: transform 0.3s ease;
-        }
-
-        .movie-card:hover .movie-poster {
-            transform: scale(1.05);
-        }
-
-        .poster-placeholder {
-            width: 100%;
-            height: 200px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            color: rgba(255,255,255,0.7);
-            margin-bottom: 15px;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .movie-title {
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             font-weight: bold;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             color: #fff;
+            text-align: left;
         }
 
         .movie-meta {
             display: flex;
-            gap: 10px;
+            gap: 15px;
             flex-wrap: wrap;
             margin-bottom: 10px;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
         }
 
         .meta-item {
-            background: rgba(255,255,255,0.1);
-            padding: 4px 8px;
-            border-radius: 8px;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 5px;
+            background: rgba(255,255,255,0.1);
+            padding: 5px 10px;
+            border-radius: 8px;
         }
 
         .rating {
@@ -207,422 +271,765 @@
 
         .genre-list {
             display: flex;
-            gap: 6px;
+            gap: 8px;
             flex-wrap: wrap;
             margin-bottom: 10px;
         }
 
         .genre-tag {
             background: linear-gradient(45deg, #667eea, #764ba2);
-            padding: 3px 8px;
-            border-radius: 10px;
-            font-size: 0.75rem;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
             color: #fff;
         }
 
         .movie-description {
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             line-height: 1.4;
-            color: rgba(255,255,255,0.8);
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
+            color: rgba(255,255,255,0.9);
+            text-align: left;
+            margin-top: 10px;
+            max-height: 60px;
             overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .modal {
+        .poster-container {
+            position: relative;
+            width: 120px;
+            height: 180px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 0 auto 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
             display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
+        }
+
+        .poster-container.visible {
+            display: block;
+            animation: posterFadeIn 0.6s ease-out;
+        }
+
+        .movie-poster {
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(10px);
-            z-index: 1000;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .modal.show {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .modal-content {
-            background: linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
-            backdrop-filter: blur(20px);
-            border-radius: 25px;
-            padding: 30px;
-            max-width: 600px;
-            width: 100%;
-            border: 1px solid rgba(255,255,255,0.2);
-            position: relative;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .modal-close {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-            opacity: 0.7;
-            transition: opacity 0.3s ease;
-        }
-
-        .modal-close:hover {
-            opacity: 1;
-        }
-
-        .modal-poster {
-            width: 150px;
-            height: 225px;
-            border-radius: 15px;
             object-fit: cover;
-            float: left;
-            margin-right: 20px;
-            margin-bottom: 15px;
+            border-radius: 12px;
         }
 
-        .modal-poster-placeholder {
-            width: 150px;
-            height: 225px;
+        .poster-placeholder {
+            width: 100%;
+            height: 100%;
             background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 3rem;
             color: rgba(255,255,255,0.7);
-            float: left;
-            margin-right: 20px;
-            margin-bottom: 15px;
         }
 
-        .modal-title {
-            font-size: 1.8rem;
+        @keyframes posterFadeIn {
+            from { opacity: 0; transform: scale(0.9) translateY(-10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .extended-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .info-item {
+            background: rgba(255,255,255,0.08);
+            padding: 8px 12px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .info-label {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            margin-bottom: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            font-size: 0.9rem;
             font-weight: bold;
-            margin-bottom: 15px;
             color: #fff;
         }
 
-        .modal-meta {
+        .progress-container {
+            margin: 15px 0;
+            padding: 12px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            display: none;
+        }
+
+        .progress-container.visible {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .progress-label {
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            opacity: 0.9;
             display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-bottom: 15px;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .modal-description {
-            font-size: 1rem;
-            line-height: 1.6;
-            color: rgba(255,255,255,0.9);
-            clear: both;
-            margin-top: 20px;
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
         }
 
-        .bot-button {
-            display: inline-block;
-            background: linear-gradient(45deg, #0088cc, #00a0e6);
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4ecdc4, #45b7d1);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 20px;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3));
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-20px); }
+            100% { transform: translateX(20px); }
+        }
+
+        .continue-button {
+            background: linear-gradient(45deg, #4ecdc4, #45b7d1);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
             color: white;
-            text-decoration: none;
-            padding: 12px 25px;
-            border-radius: 25px;
-            font-weight: bold;
-            margin-top: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
             transition: all 0.3s ease;
-            text-align: center;
         }
 
-        .bot-button:hover {
+        .continue-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 136, 204, 0.3);
-        }
-
-        @keyframes rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @keyframes gradientShift {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-
-        @keyframes sparkle {
-            0%, 100% { opacity: 0; transform: scale(0); }
-            50% { opacity: 1; transform: scale(1); }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            box-shadow: 0 5px 15px rgba(78, 205, 196, 0.3);
         }
 
         @media (max-width: 768px) {
-            .container {
+            .main-card {
                 padding: 15px;
+                margin: 5px;
+                border-radius: 20px;
             }
-
+            
             .title {
-                font-size: 2rem;
+                font-size: 1.8rem;
+                margin-bottom: 10px;
+            }
+            
+            .frame {
+                min-height: 200px;
+                max-height: 250px;
+                border-radius: 12px;
+            }
+            
+            .buttons-container {
+                flex-direction: row;
+                gap: 10px;
+            }
+            
+            .btn {
+                flex: 1;
+                padding: 12px 20px;
+                font-size: 0.9rem;
+                min-width: auto;
+            }
+            
+            .container {
+                padding: 5px;
+                gap: 10px;
             }
 
-            .movies-grid {
-                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-                gap: 20px;
+            .movie-title {
+                font-size: 1.1rem;
             }
 
-            .modal-content {
-                padding: 20px;
-                margin: 10px;
+            .movie-meta {
+                font-size: 0.85rem;
+                gap: 8px;
             }
 
-            .modal-poster, .modal-poster-placeholder {
-                width: 100px;
-                height: 150px;
-                margin-right: 15px;
+            .meta-item {
+                padding: 4px 8px;
             }
 
-            .modal-title {
-                font-size: 1.4rem;
+            .genre-tag {
+                font-size: 0.8rem;
+                padding: 3px 10px;
+            }
+
+            .poster-container {
+                width: 60px !important;
+                height: 90px !important;
+            }
+
+            .extended-info {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+
+            .info-item {
+                padding: 6px 10px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="sparkle"></div>
-    <div class="sparkle"></div>
-    <div class="sparkle"></div>
-    <div class="sparkle"></div>
-
     <div class="container">
-        <div class="header">
-            <h1 class="title">KINO HD</h1>
-            <p class="subtitle">Каталог лучших фильмов и сериалов</p>
-        </div>
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+        
+        <div class="main-card">
+            <div class="diamond-bg"></div>
+            
+            <h1 class="title">KINO HD - ПЛЕЕР</h1>
+            <div class="loader" id="loader"></div>
+            <p id="status" style="margin: 10px 0; font-size: 14px; opacity: 0.8;"></p>
+            
+            <!-- Плеер вверху -->
+            <iframe id="player" class="frame" allowfullscreen referrerpolicy="no-referrer"></iframe>
 
-        <div class="search-container">
-            <input type="text" class="search-box" placeholder="🔍 Поиск фильмов и сериалов..." id="searchInput">
-        </div>
+            <!-- Прогресс просмотра -->
+            <div id="progressContainer" class="progress-container">
+                <div class="progress-label">
+                    <span>Продолжить просмотр</span>
+                    <button id="continueButton" class="continue-button">Продолжить</button>
+                </div>
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+                </div>
+                <div style="font-size: 0.75rem; opacity: 0.7; margin-top: 5px;">
+                    <span id="progressTime">0:00 / 0:00</span>
+                </div>
+            </div>
 
-        <div class="movies-grid" id="moviesGrid">
-            <!-- Фильмы будут добавлены через JavaScript -->
-        </div>
-
-        <div style="text-align: center; margin-top: 40px;">
-            <a href="https://t.me/kinofilmFHDbot" class="bot-button">
-                🤖 Открыть в Telegram боте
-            </a>
-        </div>
-    </div>
-
-    <!-- Модальное окно -->
-    <div class="modal" id="movieModal">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeModal()">&times;</button>
-            <div id="modalContent">
-                <!-- Контент модального окна -->
+            <!-- Информация о фильме внизу -->
+            <div id="movieInfo" class="movie-info">
+                <!-- Постер и заголовок в одной строке -->
+                <div style="display: flex; gap: 15px; align-items: flex-start; margin-bottom: 15px;">
+                    <div id="posterContainer" class="poster-container" style="margin: 0; width: 80px; height: 120px; flex-shrink: 0;">
+                        <img id="moviePoster" class="movie-poster" alt="Постер фильма">
+                        <div id="posterPlaceholder" class="poster-placeholder" style="font-size: 2rem;">🎬</div>
+                    </div>
+                    <div style="flex: 1;">
+                        <div class="movie-title" id="movieTitle"></div>
+                        <div class="movie-meta">
+                            <div class="meta-item" id="ratingBlock" style="display: none;">
+                                <span class="rating" id="movieRating"></span>
+                            </div>
+                            <div class="meta-item" id="yearBlock" style="display: none;">
+                                <span class="year" id="movieYear"></span>
+                            </div>
+                            <div class="meta-item" id="qualityBlock" style="display: none;">
+                                <span class="quality" id="movieQuality"></span>
+                            </div>
+                        </div>
+                        <div class="genre-list" id="genreList"></div>
+                    </div>
+                </div>
+                
+                <div class="movie-description" id="movieDescription"></div>
+                
+                <!-- Расширенная информация -->
+                <div class="extended-info" id="extendedInfo">
+                    <div class="info-item" id="durationBlock" style="display: none;">
+                        <div class="info-label">Длительность</div>
+                        <div class="info-value" id="movieDuration">—</div>
+                    </div>
+                    <div class="info-item" id="countryBlock" style="display: none;">
+                        <div class="info-label">Страна</div>
+                        <div class="info-value" id="movieCountry">—</div>
+                    </div>
+                    <div class="info-item" id="directorBlock" style="display: none;">
+                        <div class="info-label">Режиссер</div>
+                        <div class="info-value" id="movieDirector">—</div>
+                    </div>
+                    <div class="info-item" id="ageRatingBlock" style="display: none;">
+                        <div class="info-label">Возраст</div>
+                        <div class="info-value" id="movieAgeRating">—</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="buttons-container">
+                <a href="https://t.me/kinofilmFHDbot" class="btn btn-telegram" target="_blank">
+                    НАШ ТГ-БОТ
+                </a>
+                <a href="https://t.me/kinohdnews1" class="btn btn-channel" target="_blank">
+                    НАШ КАНАЛ
+                </a>
             </div>
         </div>
     </div>
 
+    <script type="text/javascript" src="https://v-js-menu.run/public/lib.en.min.js"></script>
+    <ins id="vibix_union" data-publisher_id="676077867" data-add_types="brand,sticker,pcsticker,banners"></ins>
     <script>
-        // Примеры фильмов (в реальности можно загружать с API)
-        const movies = [
-            {
-                id: 1,
-                title: "Дюна",
-                year: 2021,
-                rating: 8.1,
-                quality: "4K",
-                genres: ["фантастика", "драма", "приключения"],
-                poster: "https://images.weserv.nl/?url=https://avatars.mds.yandex.net/get-kinopoisk-image/1946459/bf93b465-1189-4155-9dd1-cb9fb5cb1bb5/600x900",
-                description: "В далёком будущем герцог Лето Атрейдес принимает управление пустынной планетой Арракис, также известной как Дюна, единственным источником самого ценного вещества во вселенной — «пряности». Когда предательство разрушает его семью, сын герцога Пол должен бежать в пустыню и присоединиться к таинственному племени фременов.",
-                country: "США, Канада"
-            },
-            {
-                id: 2,
-                title: "Человек-паук: Нет пути домой",
-                year: 2021,
-                rating: 8.4,
-                quality: "4K",
-                genres: ["фантастика", "боевик", "приключения"],
-                poster: "https://images.weserv.nl/?url=https://avatars.mds.yandex.net/get-kinopoisk-image/4303601/9b5c1b05-95cf-4f8b-9b91-1c9a0b9b3b3b/600x900",
-                description: "Впервые в истории кинематографа Человек-паук раскрывает свою личность и больше не может отделить обычную жизнь от высоких ставок супергероя. Когда Питер обращается за помощью к Доктору Стрэнджу, ставки становятся ещё более опасными, заставляя его узнать, что значит быть Человеком-пауком.",
-                country: "США"
-            },
-            {
-                id: 3,
-                title: "Матрица: Воскрешения",
-                year: 2021,
-                rating: 5.7,
-                quality: "4K",
-                genres: ["фантастика", "боевик"],
-                poster: "https://images.weserv.nl/?url=https://avatars.mds.yandex.net/get-kinopoisk-image/4774061/2c9c1b05-95cf-4f8b-9b91-1c9a0b9b3b3b/600x900",
-                description: "Нео живёт обычной жизнью в Сан-Франциско. Его терапевт прописывает ему синие таблетки. До тех пор, пока Морфеус, которого давно разыскивают, не предлагает ему красную таблетку и не открывает его разум для мира Матрицы.",
-                country: "США"
-            },
-            {
-                id: 4,
-                title: "Дом Гуччи",
-                year: 2021,
-                rating: 6.8,
-                quality: "FullHD",
-                genres: ["драма", "криминал", "биография"],
-                poster: null,
-                description: "Фильм вдохновлён шокирующей историей семьи, стоящей за итальянским домом моды Gucci. Охватывающий три десятилетия любви, предательства, упадка, мести и, в конечном счёте, убийства, фильм показывает, что имя значит всё.",
-                country: "США, Великобритания"
-            },
-            {
-                id: 5,
-                title: "Бэтмен",
-                year: 2022,
-                rating: 7.8,
-                quality: "4K",
-                genres: ["боевик", "криминал", "драма"],
-                poster: "https://images.weserv.nl/?url=https://avatars.mds.yandex.net/get-kinopoisk-image/4774061/3c9c1b05-95cf-4f8b-9b91-1c9a0b9b3b3b/600x900",
-                description: "Когда убийца-садист начинает убивать ключевых политических фигур в Готэме, Бэтмен вынужден исследовать скрытую коррупцию города и ставить под сомнение причастность своей семьи.",
-                country: "США"
-            },
-            {
-                id: 6,
-                title: "Топ Ган: Мэверик",
-                year: 2022,
-                rating: 8.3,
-                quality: "4K",
-                genres: ["боевик", "драма"],
-                poster: null,
-                description: "После более чем тридцати лет службы в качестве одного из лучших лётчиков ВМС, Пит «Мэверик» Митчелл находится там, где он принадлежит, раздвигая границы как смелый лётчик-испытатель и уклоняясь от повышения в звании, которое заземлило бы его.",
-                country: "США"
+        function getParam(name) {
+            const url = new URL(window.location.href);
+            return url.searchParams.get(name);
+        }
+        function getAllParam(name) {
+            const url = new URL(window.location.href);
+            return url.searchParams.getAll(name);
+        }
+        const iframeUrl = getParam('iframe');
+        const kp = getParam('kp');
+        const imdb = getParam('imdb');
+        const season = getParam('season');
+        const voiceover = getParam('voiceover');
+        const episodes = getAllParam('episode');
+        
+        // Параметры информации о фильме
+        const movieTitle = getParam('title');
+        const movieRating = getParam('rating');
+        const movieYear = getParam('year');
+        const movieQuality = getParam('quality');
+        const movieGenres = getParam('genres');
+        const movieDescription = getParam('description');
+        const moviePoster = getParam('poster');
+        const movieDuration = getParam('duration');
+        const movieCountry = getParam('country');
+        const movieDirector = getParam('director');
+        const movieAgeRating = getParam('age_rating');
+
+        function buildUrl(base) {
+            const params = [];
+            
+            // Добавляем параметры сериала
+            if (season) {
+                params.push(`season=${encodeURIComponent(season)}`);
             }
-        ];
+            if (episodes && episodes.length > 0) {
+                episodes.forEach(ep => {
+                    params.push(`episode=${encodeURIComponent(ep)}`);
+                });
+            }
+            if (voiceover) {
+                params.push(`voiceover=${encodeURIComponent(voiceover)}`);
+            }
+            
+            if (!params.length) return base;
+            const sep = base.includes('?') ? '&' : '?';
+            return base + sep + params.join('&');
+        }
 
-        let filteredMovies = [...movies];
+        function addPlayerDesign(url) {
+            // Добавляем дизайн "Синий Неон" к URL плеера
+            const separator = url.includes('?') ? '&' : '?';
+            return url + separator + 'design=3';
+        }
 
-        function renderMovies(moviesToRender = filteredMovies) {
-            const grid = document.getElementById('moviesGrid');
-            grid.innerHTML = '';
+        function displayPoster() {
+            const posterContainer = document.getElementById('posterContainer');
+            const posterImg = document.getElementById('moviePoster');
+            const posterPlaceholder = document.getElementById('posterPlaceholder');
 
-            moviesToRender.forEach(movie => {
-                const movieCard = document.createElement('div');
-                movieCard.className = 'movie-card';
-                movieCard.onclick = () => openModal(movie);
+            console.log('=== POSTER DEBUG ===');
+            console.log('moviePoster param:', moviePoster);
+            console.log('posterContainer:', posterContainer);
+            console.log('posterImg:', posterImg);
+            console.log('posterPlaceholder:', posterPlaceholder);
 
-                const posterHtml = movie.poster 
-                    ? `<img src="${movie.poster}" alt="${movie.title}" class="movie-poster" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                       <div class="poster-placeholder" style="display: none;">🎬</div>`
-                    : `<div class="poster-placeholder">🎬</div>`;
+            // Всегда показываем контейнер постера
+            posterContainer.classList.add('visible');
 
-                const genresHtml = movie.genres.map(genre => 
-                    `<span class="genre-tag">${genre}</span>`
-                ).join('');
+            if (moviePoster && moviePoster !== 'null' && moviePoster !== 'undefined') {
+                const posterUrl = decodeURIComponent(moviePoster);
+                console.log('Loading poster from URL:', posterUrl);
+                
+                posterImg.src = posterUrl;
+                posterImg.onload = () => {
+                    console.log('Poster loaded successfully');
+                    posterPlaceholder.style.display = 'none';
+                    posterImg.style.display = 'block';
+                };
+                posterImg.onerror = (error) => {
+                    console.log('Poster failed to load:', error);
+                    posterPlaceholder.style.display = 'flex';
+                    posterImg.style.display = 'none';
+                };
+            } else {
+                console.log('No poster URL provided, showing placeholder');
+                posterPlaceholder.style.display = 'flex';
+                posterImg.style.display = 'none';
+            }
+        }
 
-                movieCard.innerHTML = `
-                    ${posterHtml}
-                    <div class="movie-title">${movie.title}</div>
-                    <div class="movie-meta">
-                        <div class="meta-item">
-                            <span class="rating">⭐ ${movie.rating}</span>
-                        </div>
-                        <div class="meta-item">
-                            <span class="year">📅 ${movie.year}</span>
-                        </div>
-                        <div class="meta-item">
-                            <span class="quality">🎬 ${movie.quality}</span>
-                        </div>
-                    </div>
-                    <div class="genre-list">
-                        ${genresHtml}
-                    </div>
-                    <div class="movie-description">
-                        ${movie.description}
-                    </div>
-                `;
+        function displayMovieInfo() {
+            const movieInfoBlock = document.getElementById('movieInfo');
+            const titleEl = document.getElementById('movieTitle');
+            const ratingEl = document.getElementById('movieRating');
+            const ratingBlock = document.getElementById('ratingBlock');
+            const yearEl = document.getElementById('movieYear');
+            const yearBlock = document.getElementById('yearBlock');
+            const qualityEl = document.getElementById('movieQuality');
+            const qualityBlock = document.getElementById('qualityBlock');
+            const genreListEl = document.getElementById('genreList');
+            const descriptionEl = document.getElementById('movieDescription');
 
-                grid.appendChild(movieCard);
+            // Расширенная информация
+            const durationEl = document.getElementById('movieDuration');
+            const durationBlock = document.getElementById('durationBlock');
+            const countryEl = document.getElementById('movieCountry');
+            const countryBlock = document.getElementById('countryBlock');
+            const directorEl = document.getElementById('movieDirector');
+            const directorBlock = document.getElementById('directorBlock');
+            const ageRatingEl = document.getElementById('movieAgeRating');
+            const ageRatingBlock = document.getElementById('ageRatingBlock');
+
+            let hasInfo = false;
+
+            // Название
+            if (movieTitle) {
+                titleEl.textContent = decodeURIComponent(movieTitle);
+                hasInfo = true;
+            }
+
+            // Рейтинг
+            if (movieRating && movieRating !== 'null' && movieRating !== '0') {
+                ratingEl.textContent = `⭐ ${movieRating}`;
+                ratingBlock.style.display = 'flex';
+                hasInfo = true;
+            }
+
+            // Год
+            if (movieYear && movieYear !== 'null') {
+                yearEl.textContent = `📅 ${movieYear}`;
+                yearBlock.style.display = 'flex';
+                hasInfo = true;
+            }
+
+            // Качество
+            if (movieQuality && movieQuality !== 'null') {
+                qualityEl.textContent = `🎬 ${movieQuality}`;
+                qualityBlock.style.display = 'flex';
+                hasInfo = true;
+            }
+
+            // Жанры
+            if (movieGenres && movieGenres !== 'null') {
+                const genres = decodeURIComponent(movieGenres).split(',');
+                genres.forEach(genre => {
+                    const tag = document.createElement('span');
+                    tag.className = 'genre-tag';
+                    tag.textContent = genre.trim();
+                    genreListEl.appendChild(tag);
+                });
+                hasInfo = true;
+            }
+
+            // Описание
+            if (movieDescription && movieDescription !== 'null') {
+                descriptionEl.textContent = decodeURIComponent(movieDescription);
+                hasInfo = true;
+            }
+
+            // Длительность
+            if (movieDuration && movieDuration !== 'null') {
+                durationEl.textContent = `${movieDuration} мин`;
+                durationBlock.style.display = 'block';
+                hasInfo = true;
+            }
+
+            // Страна
+            if (movieCountry && movieCountry !== 'null') {
+                countryEl.textContent = decodeURIComponent(movieCountry);
+                countryBlock.style.display = 'block';
+                hasInfo = true;
+            }
+
+            // Режиссер
+            if (movieDirector && movieDirector !== 'null') {
+                directorEl.textContent = decodeURIComponent(movieDirector);
+                directorBlock.style.display = 'block';
+                hasInfo = true;
+            }
+
+            // Возрастной рейтинг
+            if (movieAgeRating && movieAgeRating !== 'null') {
+                ageRatingEl.textContent = `${movieAgeRating}+`;
+                ageRatingBlock.style.display = 'block';
+                hasInfo = true;
+            }
+
+            // Показываем блок если есть хоть какая-то информация
+            if (hasInfo) {
+                movieInfoBlock.classList.add('visible');
+            }
+        }
+
+        // Функции для автосохранения позиции
+        function getContentId() {
+            // Создаем уникальный ID для контента
+            if (kp) return `kp_${kp}_${season || 'movie'}_${episodes.join('_') || 'single'}`;
+            if (imdb) return `imdb_${imdb}_${season || 'movie'}_${episodes.join('_') || 'single'}`;
+            return `unknown_${Date.now()}`;
+        }
+
+        function saveProgress(currentTime, duration) {
+            const contentId = getContentId();
+            const progress = {
+                currentTime: currentTime,
+                duration: duration,
+                percentage: (currentTime / duration) * 100,
+                timestamp: Date.now(),
+                title: movieTitle ? decodeURIComponent(movieTitle) : 'Неизвестно'
+            };
+            localStorage.setItem(`progress_${contentId}`, JSON.stringify(progress));
+            console.log('Progress saved:', progress);
+        }
+
+        function loadProgress() {
+            const contentId = getContentId();
+            const saved = localStorage.getItem(`progress_${contentId}`);
+            if (saved) {
+                try {
+                    return JSON.parse(saved);
+                } catch (e) {
+                    console.error('Error parsing saved progress:', e);
+                }
+            }
+            return null;
+        }
+
+        function formatTime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = Math.floor(seconds % 60);
+            
+            if (hours > 0) {
+                return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+            return `${minutes}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function displayProgress(progress) {
+            const progressContainer = document.getElementById('progressContainer');
+            const progressFill = document.getElementById('progressFill');
+            const progressTime = document.getElementById('progressTime');
+            const continueButton = document.getElementById('continueButton');
+
+            if (progress && progress.percentage > 5 && progress.percentage < 95) {
+                progressFill.style.width = `${progress.percentage}%`;
+                progressTime.textContent = `${formatTime(progress.currentTime)} / ${formatTime(progress.duration)}`;
+                progressContainer.classList.add('visible');
+
+                continueButton.onclick = () => {
+                    const frame = document.getElementById('player');
+                    // Попытка отправить сообщение в iframe для перемотки
+                    try {
+                        frame.contentWindow.postMessage({
+                            type: 'seek',
+                            time: progress.currentTime
+                        }, '*');
+                    } catch (e) {
+                        console.log('Cannot seek directly, iframe restrictions');
+                    }
+                    progressContainer.style.display = 'none';
+                };
+            }
+        }
+
+        function setupProgressTracking() {
+            const frame = document.getElementById('player');
+            
+            // Слушаем сообщения от iframe плеера
+            window.addEventListener('message', (event) => {
+                if (event.data && event.data.type === 'timeupdate') {
+                    const { currentTime, duration } = event.data;
+                    if (duration > 0 && currentTime > 0) {
+                        // Сохраняем прогресс каждые 10 секунд
+                        if (Math.floor(currentTime) % 10 === 0) {
+                            saveProgress(currentTime, duration);
+                        }
+                    }
+                }
             });
+
+            // Попытка получить прогресс через postMessage
+            setInterval(() => {
+                try {
+                    frame.contentWindow.postMessage({ type: 'getTime' }, '*');
+                } catch (e) {
+                    // Игнорируем ошибки cross-origin
+                }
+            }, 5000);
         }
 
-        function openModal(movie) {
-            const modal = document.getElementById('movieModal');
-            const modalContent = document.getElementById('modalContent');
-
-            const posterHtml = movie.poster 
-                ? `<img src="${movie.poster}" alt="${movie.title}" class="modal-poster" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                   <div class="modal-poster-placeholder" style="display: none;">🎬</div>`
-                : `<div class="modal-poster-placeholder">🎬</div>`;
-
-            const genresHtml = movie.genres.map(genre => 
-                `<span class="genre-tag">${genre}</span>`
-            ).join('');
-
-            modalContent.innerHTML = `
-                ${posterHtml}
-                <div class="modal-title">${movie.title}</div>
-                <div class="modal-meta">
-                    <div class="meta-item">
-                        <span class="rating">⭐ ${movie.rating}</span>
-                    </div>
-                    <div class="meta-item">
-                        <span class="year">📅 ${movie.year}</span>
-                    </div>
-                    <div class="meta-item">
-                        <span class="quality">🎬 ${movie.quality}</span>
-                    </div>
-                </div>
-                <div class="genre-list">
-                    ${genresHtml}
-                </div>
-                <div class="modal-description">
-                    <strong>Страна:</strong> ${movie.country}<br><br>
-                    ${movie.description}
-                </div>
-                <a href="https://t.me/kinofilmFHDbot" class="bot-button">
-                    🎬 Смотреть в боте
-                </a>
-            `;
-
-            modal.classList.add('show');
-        }
-
-        function closeModal() {
-            const modal = document.getElementById('movieModal');
-            modal.classList.remove('show');
-        }
-
-        // Поиск
-        document.getElementById('searchInput').addEventListener('input', function(e) {
-            const query = e.target.value.toLowerCase();
-            filteredMovies = movies.filter(movie => 
-                movie.title.toLowerCase().includes(query) ||
-                movie.genres.some(genre => genre.toLowerCase().includes(query))
-            );
-            renderMovies(filteredMovies);
-        });
-
-        // Закрытие модального окна при клике вне его
-        document.getElementById('movieModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
+        async function init() {
+            const loader = document.getElementById('loader');
+            const status = document.getElementById('status');
+            const frame = document.getElementById('player');
+            
+            // Логируем все параметры для отладки
+            console.log('=== MINIAPP DEBUG ===');
+            console.log('Init params:', { iframeUrl, kp, imdb, season, voiceover, episodes });
+            console.log('Movie info params:', { movieTitle, movieRating, movieYear, movieQuality, movieGenres, movieDescription, moviePoster });
+            console.log('Extended info params:', { movieDuration, movieCountry, movieDirector, movieAgeRating });
+            console.log('URL params:', window.location.search);
+            console.log('All URL params:', Object.fromEntries(new URLSearchParams(window.location.search)));
+            
+            // Проверяем наличие критических параметров для сериалов
+            if (!iframeUrl && kp && !season) {
+                console.warn('⚠️ ВНИМАНИЕ: Для сериала указан kp, но отсутствует season!');
+                console.warn('Это может быть причиной черного экрана');
             }
-        });
-
-        // Закрытие модального окна при нажатии Escape
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeModal();
+            
+            if (!iframeUrl && !kp && !imdb) {
+                console.error('❌ ОШИБКА: Не указан ни один источник видео!');
             }
-        });
+            
+            // Дополнительная проверка доступности контента
+            if (kp) {
+                console.log(`🔍 Проверяем доступность контента с KP ID: ${kp}`);
+                const testUrl = `https://vibix.org/embed-kp/${kp}`;
+                console.log(`📡 Тестовый URL: ${testUrl}`);
+            }
+            
+            // Отображаем постер и информацию о фильме
+            displayPoster();
+            displayMovieInfo();
+            
+            // Загружаем и отображаем прогресс просмотра
+            const savedProgress = loadProgress();
+            if (savedProgress) {
+                displayProgress(savedProgress);
+            }
+            
+            try {
+                let url = iframeUrl;
+                
+                // Проверяем наличие параметров
+                if (!url && kp) {
+                    url = `https://vibix.org/embed-kp/${encodeURIComponent(kp)}`;
+                    console.log('Using KP URL:', url);
+                }
+                if (!url && imdb) {
+                    url = `https://vibix.org/embed-imdb/${encodeURIComponent(imdb)}`;
+                    console.log('Using IMDB URL:', url);
+                }
+                
+                if (!url) {
+                    console.error('No video source found!', { kp, imdb, iframeUrl });
+                    throw new Error('Не указан источник видео (kp, imdb или iframe)');
+                }
+                
+                // Строим финальный URL с параметрами сериала
+                const originalUrl = url;
+                url = buildUrl(url);
+                
+                // Добавляем дизайн "Синий Неон"
+                url = addPlayerDesign(url);
+                
+                console.log('Original URL:', originalUrl);
+                console.log('Final player URL:', url);
+                console.log('Built URL params:', { season, episodes, voiceover });
+                console.log('URL changed:', originalUrl !== url ? 'YES' : 'NO');
+                
+                // Показываем статус загрузки
+                status.textContent = 'Загрузка плеера...';
+                status.style.display = 'block';
+                
+                // Устанавливаем src для iframe
+                frame.src = url;
+                
+                // Обработчик загрузки iframe
+                frame.onload = () => {
+                    console.log('Player loaded successfully');
+                    loader.style.display = 'none';
+                    status.style.display = 'none';
+                    
+                    // Настраиваем отслеживание прогресса
+                    setupProgressTracking();
+                };
+                
+                // Обработчик ошибки загрузки iframe
+                frame.onerror = (error) => {
+                    console.error('Player load error:', error);
+                    loader.style.display = 'none';
+                    status.innerHTML = `
+                        ❌ Контент недоступен<br>
+                        <small style="opacity: 0.7;">Возможно, сериал отсутствует в базе Vibix</small>
+                    `;
+                    status.style.color = '#ff6b6b';
+                    status.style.display = 'block';
+                };
+                
+                // Таймаут на случай если onload не сработает
+                setTimeout(() => {
+                    if (loader.style.display !== 'none') {
+                        console.log('Player load timeout reached');
+                        loader.style.display = 'none';
+                        status.style.display = 'none';
+                    }
+                }, 5000);
+                
+            } catch (e) {
+                console.error('Init error:', e);
+                loader.style.display = 'none';
+                status.textContent = `❌ Ошибка: ${e.message}`;
+                status.style.color = '#ff6b6b';
+                status.style.display = 'block';
+            }
+        }
+        init();
 
-        // Инициализация
-        renderMovies();
+        // Оптимизированные эффекты только для десктопа
+        if (window.innerWidth > 768) {
+            setInterval(() => {
+                const title = document.querySelector('.title');
+                if (title) {
+                    title.style.textShadow = '0 0 25px rgba(255,255,255,0.7)';
+                    setTimeout(() => {
+                        title.style.textShadow = '0 0 20px rgba(255,255,255,0.5)';
+                    }, 400);
+                }
+            }, 3000);
+        }
+
+        // Простая интерактивность для кнопок
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('touchstart', function() {
+                this.style.transform = 'scale(0.95)';
+            });
+            btn.addEventListener('touchend', function() {
+                this.style.transform = 'scale(1)';
+            });
+        });
     </script>
 </body>
 </html>
+
