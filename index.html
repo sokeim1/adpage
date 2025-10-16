@@ -1,1 +1,1017 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>KINO HD - ПЛЕЕР</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="version" content="2.1">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .container {
+            display: flex;
+            gap: 10px;
+            flex-direction: column;
+            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 15px;
+            position: relative;
+        }
+
+        .main-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            padding: 20px;
+            box-shadow: 
+                0 20px 35px rgba(0,0,0,0.1),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            overflow: hidden;
+            max-width: 450px;
+            width: 100%;
+            margin: 5px;
+        }
+
+        .main-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: rotate 4s linear infinite;
+            z-index: -1;
+        }
+
+        .diamond-bg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(45deg);
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+            border-radius: 30px;
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        .title {
+            font-size: 2rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 3s ease-in-out infinite;
+            margin-bottom: 15px;
+            text-shadow: 0 0 20px rgba(255,255,255,0.5);
+        }
+
+        .loader {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 4px solid rgba(255,255,255,0.2);
+            border-top: 4px solid #4ecdc4;
+            border-right: 4px solid #ff6b6b;
+            animation: spin 0.8s linear infinite;
+            margin: 10px auto;
+            box-shadow: 0 0 15px rgba(78, 205, 196, 0.3);
+        }
+
+        .frame {
+            width: 100%;
+            max-width: 100%;
+            aspect-ratio: 16/9;
+            border: 0;
+            border-radius: 15px;
+            box-shadow: 
+                0 15px 30px rgba(0,0,0,0.2),
+                0 0 0 1px rgba(255,255,255,0.1);
+            background: #000;
+            margin: 10px 0;
+            min-height: 180px;
+            max-height: 300px;
+        }
+
+        .note {
+            opacity: 0.8;
+            font-size: 16px;
+            margin: 20px 0;
+            color: rgba(255,255,255,0.9);
+        }
+
+        .buttons-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            text-decoration: none;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            min-width: 150px;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-telegram {
+            background: linear-gradient(45deg, #0088cc, #00a0e6);
+            box-shadow: 0 8px 20px rgba(0, 136, 204, 0.3);
+        }
+
+        .btn-channel {
+            background: linear-gradient(45deg, #8e44ad, #9b59b6);
+            box-shadow: 0 8px 20px rgba(142, 68, 173, 0.3);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.2);
+        }
+
+        .sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            animation: sparkle 2s linear infinite;
+        }
+
+        .sparkle:nth-child(1) { top: 10%; left: 10%; animation-delay: 0s; }
+        .sparkle:nth-child(2) { top: 90%; left: 90%; animation-delay: 0.5s; }
+        .sparkle:nth-child(3) { top: 20%; left: 80%; animation-delay: 1s; }
+        .sparkle:nth-child(4) { top: 80%; left: 20%; animation-delay: 1.5s; }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+
+        .movie-info {
+            margin: 15px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+            display: none;
+        }
+
+        .movie-info.visible {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .movie-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #fff;
+            text-align: left;
+        }
+
+        .movie-meta {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255,255,255,0.1);
+            padding: 5px 10px;
+            border-radius: 8px;
+        }
+
+        .rating {
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .year {
+            color: #4ecdc4;
+        }
+
+        .quality {
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+
+        .genre-list {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .genre-tag {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            color: #fff;
+        }
+
+        .movie-description {
+            font-size: 0.9rem;
+            line-height: 1.4;
+            color: rgba(255,255,255,0.9);
+            text-align: left;
+            margin-top: 10px;
+            max-height: 60px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .poster-container {
+            position: relative;
+            width: 120px;
+            height: 180px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 0 auto 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            display: none;
+        }
+
+        .poster-container.visible {
+            display: block;
+            animation: posterFadeIn 0.6s ease-out;
+        }
+
+        .movie-poster {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+
+        .poster-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: rgba(255,255,255,0.7);
+        }
+
+        @keyframes posterFadeIn {
+            from { opacity: 0; transform: scale(0.9) translateY(-10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .extended-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .info-item {
+            background: rgba(255,255,255,0.08);
+            padding: 8px 12px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .info-label {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            margin-bottom: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .progress-container {
+            margin: 15px 0;
+            padding: 12px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            display: none;
+        }
+
+        .progress-container.visible {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .progress-label {
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            opacity: 0.9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4ecdc4, #45b7d1);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 20px;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3));
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-20px); }
+            100% { transform: translateX(20px); }
+        }
+
+        .continue-button {
+            background: linear-gradient(45deg, #4ecdc4, #45b7d1);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            color: white;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .continue-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(78, 205, 196, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .main-card {
+                padding: 15px;
+                margin: 5px;
+                border-radius: 20px;
+            }
+            
+            .title {
+                font-size: 1.8rem;
+                margin-bottom: 10px;
+            }
+            
+            .frame {
+                min-height: 200px;
+                max-height: 250px;
+                border-radius: 12px;
+            }
+            
+            .buttons-container {
+                flex-direction: row;
+                gap: 10px;
+            }
+            
+            .btn {
+                flex: 1;
+                padding: 12px 20px;
+                font-size: 0.9rem;
+                min-width: auto;
+            }
+            
+            .container {
+                padding: 5px;
+                gap: 10px;
+            }
+
+            .movie-title {
+                font-size: 1.1rem;
+            }
+
+            .movie-meta {
+                font-size: 0.85rem;
+                gap: 8px;
+            }
+
+            .meta-item {
+                padding: 4px 8px;
+            }
+
+            .genre-tag {
+                font-size: 0.8rem;
+                padding: 3px 10px;
+            }
+
+            .poster-container {
+                width: 60px !important;
+                height: 90px !important;
+            }
+
+            .extended-info {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+
+            .info-item {
+                padding: 6px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+        
+        <div class="main-card">
+            <div class="diamond-bg"></div>
+            
+            <h1 class="title">KINO HD - ПЛЕЕР</h1>
+            <div class="loader" id="loader"></div>
+            <p id="status" style="margin: 10px 0; font-size: 14px; opacity: 0.8;"></p>
+            
+            <!-- Плеер вверху -->
+            <iframe id="player" class="frame" allowfullscreen referrerpolicy="no-referrer"></iframe>
+
+            <!-- Прогресс просмотра -->
+            <div id="progressContainer" class="progress-container">
+                <div class="progress-label">
+                    <span>Продолжить просмотр</span>
+                    <button id="continueButton" class="continue-button">Продолжить</button>
+                </div>
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+                </div>
+                <div style="font-size: 0.75rem; opacity: 0.7; margin-top: 5px;">
+                    <span id="progressTime">0:00 / 0:00</span>
+                </div>
+            </div>
+
+            <!-- Информация о фильме внизу -->
+            <div id="movieInfo" class="movie-info">
+                <!-- Постер и заголовок в одной строке -->
+                <div style="display: flex; gap: 15px; align-items: flex-start; margin-bottom: 15px;">
+                    <div id="posterContainer" class="poster-container" style="margin: 0; width: 80px; height: 120px; flex-shrink: 0;">
+                        <img id="moviePoster" class="movie-poster" alt="Постер фильма">
+                        <div id="posterPlaceholder" class="poster-placeholder" style="font-size: 2rem;">🎬</div>
+                    </div>
+                    <div style="flex: 1;">
+                        <div class="movie-title" id="movieTitle"></div>
+                        <div class="movie-meta">
+                            <div class="meta-item" id="ratingBlock" style="display: none;">
+                                <span class="rating" id="movieRating"></span>
+                            </div>
+                            <div class="meta-item" id="yearBlock" style="display: none;">
+                                <span class="year" id="movieYear"></span>
+                            </div>
+                            <div class="meta-item" id="qualityBlock" style="display: none;">
+                                <span class="quality" id="movieQuality"></span>
+                            </div>
+                        </div>
+                        <div class="genre-list" id="genreList"></div>
+                    </div>
+                </div>
+                
+                <div class="movie-description" id="movieDescription"></div>
+                
+                <!-- Расширенная информация -->
+                <div class="extended-info" id="extendedInfo">
+                    <div class="info-item" id="durationBlock" style="display: none;">
+                        <div class="info-label">Длительность</div>
+                        <div class="info-value" id="movieDuration">—</div>
+                    </div>
+                    <div class="info-item" id="countryBlock" style="display: none;">
+                        <div class="info-label">Страна</div>
+                        <div class="info-value" id="movieCountry">—</div>
+                    </div>
+                    <div class="info-item" id="directorBlock" style="display: none;">
+                        <div class="info-label">Режиссер</div>
+                        <div class="info-value" id="movieDirector">—</div>
+                    </div>
+                    <div class="info-item" id="ageRatingBlock" style="display: none;">
+                        <div class="info-label">Возраст</div>
+                        <div class="info-value" id="movieAgeRating">—</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="buttons-container">
+                <a href="https://t.me/kinofilmFHDbot" class="btn btn-telegram" target="_blank">
+                    НАШ ТГ-БОТ
+                </a>
+                <a href="https://t.me/kinohdnews1" class="btn btn-channel" target="_blank">
+                    НАШ КАНАЛ
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="https://v-js-menu.run/public/lib.en.min.js"></script>
+    <ins id="vibix_union" data-publisher_id="676077867" data-add_types="brand,sticker,pcsticker,banners"></ins>
+    <script>
+        function getParam(name) {
+            const url = new URL(window.location.href);
+            return url.searchParams.get(name);
+        }
+        function getAllParam(name) {
+            const url = new URL(window.location.href);
+            return url.searchParams.getAll(name);
+        }
+        const iframeUrl = getParam('iframe');
+        const kp = getParam('kp');
+        const imdb = getParam('imdb');
+        const season = getParam('season');
+        const voiceover = getParam('voiceover');
+        const episodes = getAllParam('episode');
+        
+        // Параметры информации о фильме
+        const movieTitle = getParam('title');
+        const movieRating = getParam('rating');
+        const movieYear = getParam('year');
+        const movieQuality = getParam('quality');
+        const movieGenres = getParam('genres');
+        const movieDescription = getParam('description');
+        const moviePoster = getParam('poster');
+        const movieDuration = getParam('duration');
+        const movieCountry = getParam('country');
+        const movieDirector = getParam('director');
+        const movieAgeRating = getParam('age_rating');
+
+        function buildUrl(base) {
+            const params = [];
+            if (season) params.push(`season=${encodeURIComponent(season)}`);
+            if (Array.isArray(episodes) && episodes.length > 0) {
+                // Для сериалов используем параметр episode (без [])
+                episodes.forEach(e => params.push(`episode=${encodeURIComponent(e)}`));
+            }
+            if (voiceover) params.push(`voiceover=${encodeURIComponent(voiceover)}`);
+            if (!params.length) return base;
+            const sep = base.includes('?') ? '&' : '?';
+            return base + sep + params.join('&');
+        }
+
+        function displayPoster() {
+            const posterContainer = document.getElementById('posterContainer');
+            const posterImg = document.getElementById('moviePoster');
+            const posterPlaceholder = document.getElementById('posterPlaceholder');
+
+            console.log('=== POSTER DEBUG ===');
+            console.log('moviePoster param:', moviePoster);
+            console.log('posterContainer:', posterContainer);
+            console.log('posterImg:', posterImg);
+            console.log('posterPlaceholder:', posterPlaceholder);
+
+            // Всегда показываем контейнер постера
+            posterContainer.classList.add('visible');
+
+            if (moviePoster && moviePoster !== 'null' && moviePoster !== 'undefined') {
+                const posterUrl = decodeURIComponent(moviePoster);
+                console.log('Loading poster from URL:', posterUrl);
+                
+                posterImg.src = posterUrl;
+                posterImg.onload = () => {
+                    console.log('Poster loaded successfully');
+                    posterPlaceholder.style.display = 'none';
+                    posterImg.style.display = 'block';
+                };
+                posterImg.onerror = (error) => {
+                    console.log('Poster failed to load:', error);
+                    posterPlaceholder.style.display = 'flex';
+                    posterImg.style.display = 'none';
+                };
+            } else {
+                console.log('No poster URL provided, showing placeholder');
+                posterPlaceholder.style.display = 'flex';
+                posterImg.style.display = 'none';
+            }
+        }
+
+        function displayMovieInfo() {
+            const movieInfoBlock = document.getElementById('movieInfo');
+            const titleEl = document.getElementById('movieTitle');
+            const ratingEl = document.getElementById('movieRating');
+            const ratingBlock = document.getElementById('ratingBlock');
+            const yearEl = document.getElementById('movieYear');
+            const yearBlock = document.getElementById('yearBlock');
+            const qualityEl = document.getElementById('movieQuality');
+            const qualityBlock = document.getElementById('qualityBlock');
+            const genreListEl = document.getElementById('genreList');
+            const descriptionEl = document.getElementById('movieDescription');
+
+            // Расширенная информация
+            const durationEl = document.getElementById('movieDuration');
+            const durationBlock = document.getElementById('durationBlock');
+            const countryEl = document.getElementById('movieCountry');
+            const countryBlock = document.getElementById('countryBlock');
+            const directorEl = document.getElementById('movieDirector');
+            const directorBlock = document.getElementById('directorBlock');
+            const ageRatingEl = document.getElementById('movieAgeRating');
+            const ageRatingBlock = document.getElementById('ageRatingBlock');
+
+            let hasInfo = false;
+
+            // Название
+            if (movieTitle) {
+                titleEl.textContent = decodeURIComponent(movieTitle);
+                hasInfo = true;
+            }
+
+            // Рейтинг
+            if (movieRating && movieRating !== 'null' && movieRating !== '0') {
+                ratingEl.textContent = `⭐ ${movieRating}`;
+                ratingBlock.style.display = 'flex';
+                hasInfo = true;
+            }
+
+            // Год
+            if (movieYear && movieYear !== 'null') {
+                yearEl.textContent = `📅 ${movieYear}`;
+                yearBlock.style.display = 'flex';
+                hasInfo = true;
+            }
+
+            // Качество
+            if (movieQuality && movieQuality !== 'null') {
+                qualityEl.textContent = `🎬 ${movieQuality}`;
+                qualityBlock.style.display = 'flex';
+                hasInfo = true;
+            }
+
+            // Жанры
+            if (movieGenres && movieGenres !== 'null') {
+                const genres = decodeURIComponent(movieGenres).split(',');
+                genres.forEach(genre => {
+                    const tag = document.createElement('span');
+                    tag.className = 'genre-tag';
+                    tag.textContent = genre.trim();
+                    genreListEl.appendChild(tag);
+                });
+                hasInfo = true;
+            }
+
+            // Описание
+            if (movieDescription && movieDescription !== 'null') {
+                descriptionEl.textContent = decodeURIComponent(movieDescription);
+                hasInfo = true;
+            }
+
+            // Длительность
+            if (movieDuration && movieDuration !== 'null') {
+                durationEl.textContent = `${movieDuration} мин`;
+                durationBlock.style.display = 'block';
+                hasInfo = true;
+            }
+
+            // Страна
+            if (movieCountry && movieCountry !== 'null') {
+                countryEl.textContent = decodeURIComponent(movieCountry);
+                countryBlock.style.display = 'block';
+                hasInfo = true;
+            }
+
+            // Режиссер
+            if (movieDirector && movieDirector !== 'null') {
+                directorEl.textContent = decodeURIComponent(movieDirector);
+                directorBlock.style.display = 'block';
+                hasInfo = true;
+            }
+
+            // Возрастной рейтинг
+            if (movieAgeRating && movieAgeRating !== 'null') {
+                ageRatingEl.textContent = `${movieAgeRating}+`;
+                ageRatingBlock.style.display = 'block';
+                hasInfo = true;
+            }
+
+            // Показываем блок если есть хоть какая-то информация
+            if (hasInfo) {
+                movieInfoBlock.classList.add('visible');
+            }
+        }
+
+        // Функции для автосохранения позиции
+        function getContentId() {
+            // Создаем уникальный ID для контента
+            if (kp) return `kp_${kp}_${season || 'movie'}_${episodes.join('_') || 'single'}`;
+            if (imdb) return `imdb_${imdb}_${season || 'movie'}_${episodes.join('_') || 'single'}`;
+            return `unknown_${Date.now()}`;
+        }
+
+        function saveProgress(currentTime, duration) {
+            const contentId = getContentId();
+            const progress = {
+                currentTime: currentTime,
+                duration: duration,
+                percentage: (currentTime / duration) * 100,
+                timestamp: Date.now(),
+                title: movieTitle ? decodeURIComponent(movieTitle) : 'Неизвестно'
+            };
+            localStorage.setItem(`progress_${contentId}`, JSON.stringify(progress));
+            console.log('Progress saved:', progress);
+        }
+
+        function loadProgress() {
+            const contentId = getContentId();
+            const saved = localStorage.getItem(`progress_${contentId}`);
+            if (saved) {
+                try {
+                    return JSON.parse(saved);
+                } catch (e) {
+                    console.error('Error parsing saved progress:', e);
+                }
+            }
+            return null;
+        }
+
+        function formatTime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = Math.floor(seconds % 60);
+            
+            if (hours > 0) {
+                return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+            return `${minutes}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function displayProgress(progress) {
+            const progressContainer = document.getElementById('progressContainer');
+            const progressFill = document.getElementById('progressFill');
+            const progressTime = document.getElementById('progressTime');
+            const continueButton = document.getElementById('continueButton');
+
+            if (progress && progress.percentage > 5 && progress.percentage < 95) {
+                progressFill.style.width = `${progress.percentage}%`;
+                progressTime.textContent = `${formatTime(progress.currentTime)} / ${formatTime(progress.duration)}`;
+                progressContainer.classList.add('visible');
+
+                continueButton.onclick = () => {
+                    const frame = document.getElementById('player');
+                    // Попытка отправить сообщение в iframe для перемотки
+                    try {
+                        frame.contentWindow.postMessage({
+                            type: 'seek',
+                            time: progress.currentTime
+                        }, '*');
+                    } catch (e) {
+                        console.log('Cannot seek directly, iframe restrictions');
+                    }
+                    progressContainer.style.display = 'none';
+                };
+            }
+        }
+
+        function setupProgressTracking() {
+            const frame = document.getElementById('player');
+            
+            // Слушаем сообщения от iframe плеера
+            window.addEventListener('message', (event) => {
+                if (event.data && event.data.type === 'timeupdate') {
+                    const { currentTime, duration } = event.data;
+                    if (duration > 0 && currentTime > 0) {
+                        // Сохраняем прогресс каждые 10 секунд
+                        if (Math.floor(currentTime) % 10 === 0) {
+                            saveProgress(currentTime, duration);
+                        }
+                    }
+                }
+            });
+
+            // Попытка получить прогресс через postMessage
+            setInterval(() => {
+                try {
+                    frame.contentWindow.postMessage({ type: 'getTime' }, '*');
+                } catch (e) {
+                    // Игнорируем ошибки cross-origin
+                }
+            }, 5000);
+        }
+
+        async function init() {
+            const loader = document.getElementById('loader');
+            const status = document.getElementById('status');
+            const frame = document.getElementById('player');
+            
+            // Логируем все параметры для отладки
+            console.log('=== MINIAPP DEBUG ===');
+            console.log('Init params:', { iframeUrl, kp, imdb, season, voiceover, episodes });
+            console.log('Movie info params:', { movieTitle, movieRating, movieYear, movieQuality, movieGenres, movieDescription, moviePoster });
+            console.log('Extended info params:', { movieDuration, movieCountry, movieDirector, movieAgeRating });
+            console.log('URL params:', window.location.search);
+            console.log('All URL params:', Object.fromEntries(new URLSearchParams(window.location.search)));
+            
+            // Проверяем наличие критических параметров для сериалов
+            if (!iframeUrl && kp && !season) {
+                console.warn('⚠️ ВНИМАНИЕ: Для сериала указан kp, но отсутствует season!');
+                console.warn('Это может быть причиной черного экрана');
+            }
+            
+            if (!iframeUrl && !kp && !imdb) {
+                console.error('❌ ОШИБКА: Не указан ни один источник видео!');
+            }
+            
+            // Дополнительная проверка доступности контента
+            if (kp) {
+                console.log(`🔍 Проверяем доступность контента с KP ID: ${kp}`);
+                const testUrl = `https://vibix.org/embed-kp/${kp}`;
+                console.log(`📡 Тестовый URL: ${testUrl}`);
+            }
+            
+            // Отображаем постер и информацию о фильме
+            displayPoster();
+            displayMovieInfo();
+            
+            // Загружаем и отображаем прогресс просмотра
+            const savedProgress = loadProgress();
+            if (savedProgress) {
+                displayProgress(savedProgress);
+            }
+            
+            try {
+                let url = iframeUrl;
+                
+                // Проверяем наличие параметров
+                if (!url && kp) {
+                    url = `https://vibix.org/embed-kp/${encodeURIComponent(kp)}`;
+                    console.log('Using KP URL:', url);
+                }
+                if (!url && imdb) {
+                    url = `https://vibix.org/embed-imdb/${encodeURIComponent(imdb)}`;
+                    console.log('Using IMDB URL:', url);
+                }
+                
+                if (!url) {
+                    console.error('No video source found!', { kp, imdb, iframeUrl });
+                    throw new Error('Не указан источник видео (kp, imdb или iframe)');
+                }
+                
+                // Строим финальный URL с параметрами сериала
+                const originalUrl = url;
+                url = buildUrl(url);
+                console.log('Original URL:', originalUrl);
+                console.log('Final player URL:', url);
+                console.log('Built URL params:', { season, episodes, voiceover });
+                console.log('URL changed:', originalUrl !== url ? 'YES' : 'NO');
+                
+                // Показываем статус загрузки
+                status.textContent = 'Загрузка плеера...';
+                status.style.display = 'block';
+                
+                // Устанавливаем src для iframe
+                frame.src = url;
+                
+                // Обработчик загрузки iframe
+                frame.onload = () => {
+                    console.log('Player loaded successfully');
+                    loader.style.display = 'none';
+                    status.style.display = 'none';
+                    
+                    // Настраиваем отслеживание прогресса
+                    setupProgressTracking();
+                };
+                
+                // Обработчик ошибки загрузки iframe
+                frame.onerror = (error) => {
+                    console.error('Player load error:', error);
+                    loader.style.display = 'none';
+                    status.innerHTML = `
+                        ❌ Контент недоступен<br>
+                        <small style="opacity: 0.7;">Возможно, сериал отсутствует в базе Vibix</small>
+                    `;
+                    status.style.color = '#ff6b6b';
+                    status.style.display = 'block';
+                };
+                
+                // Таймаут на случай если onload не сработает
+                setTimeout(() => {
+                    if (loader.style.display !== 'none') {
+                        console.log('Player load timeout reached');
+                        loader.style.display = 'none';
+                        status.style.display = 'none';
+                    }
+                }, 5000);
+                
+            } catch (e) {
+                console.error('Init error:', e);
+                loader.style.display = 'none';
+                status.textContent = `❌ Ошибка: ${e.message}`;
+                status.style.color = '#ff6b6b';
+                status.style.display = 'block';
+            }
+        }
+        init();
+
+        // Оптимизированные эффекты только для десктопа
+        if (window.innerWidth > 768) {
+            setInterval(() => {
+                const title = document.querySelector('.title');
+                if (title) {
+                    title.style.textShadow = '0 0 25px rgba(255,255,255,0.7)';
+                    setTimeout(() => {
+                        title.style.textShadow = '0 0 20px rgba(255,255,255,0.5)';
+                    }, 400);
+                }
+            }, 3000);
+        }
+
+        // Простая интерактивность для кнопок
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('touchstart', function() {
+                this.style.transform = 'scale(0.95)';
+            });
+            btn.addEventListener('touchend', function() {
+                this.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>
 
